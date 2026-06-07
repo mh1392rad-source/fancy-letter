@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter FINAL</title>
+<title>Fancy Letter FINAL FIX</title>
 
 <style>
 body{
@@ -75,7 +75,7 @@ audio{
 <!-- LOGIN -->
 <div class="box" id="loginBox">
 <h2>🔐 ورود ایمیلی</h2>
-<input id="email" placeholder="ایمیل">
+<input id="email" placeholder="ایمیل خود را وارد کنید">
 <button onclick="login()">ارسال لینک ورود</button>
 </div>
 
@@ -107,28 +107,34 @@ audio{
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-/* 🔥 CONFIG */
+/* 🔥 SUPABASE CONFIG */
 const supabase = createClient(
 "https://ycbnblhxzzcslturozrf.supabase.co",
 "sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
 );
 
-/* ===== LOGIN ===== */
+/* ================= LOGIN ================= */
 window.login = async function(){
   let email = document.getElementById("email").value;
 
-  let { error } = await supabase.auth.signInWithOtp({
-    email
+  if(!email){
+    alert("ایمیل را وارد کن ❌");
+    return;
+  }
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim()
   });
 
   if(error){
-    alert("خطا در ارسال ایمیل ❌");
+    console.log(error);
+    alert("خطا: " + error.message);
   }else{
     alert("لینک ورود ارسال شد 📧");
   }
 };
 
-/* ===== UI ===== */
+/* ================= UI CONTROL ================= */
 function updateUI(session){
   if(session){
     loginBox.style.display="none";
@@ -139,27 +145,26 @@ function updateUI(session){
   }
 }
 
-/* ===== INIT SESSION ===== */
+/* ================= SESSION INIT ================= */
 window.addEventListener("load", async () => {
 
-  // 🔥 مهم: خواندن session بعد از کلیک لینک
   const { data } = await supabase.auth.getSession();
 
   updateUI(data.session);
 });
 
-/* ===== LISTENER (REAL TIME LOGIN FIX) ===== */
+/* ================= LISTENER (AUTO LOGIN FIX) ================= */
 supabase.auth.onAuthStateChange((event, session) => {
   updateUI(session);
 });
 
-/* ===== LOGOUT ===== */
+/* ================= LOGOUT ================= */
 window.logout = async function(){
   await supabase.auth.signOut();
   location.reload();
 };
 
-/* ===== BASE64 IMAGE ===== */
+/* ================= IMAGE ================= */
 function toBase64(file){
   return new Promise(res=>{
     let r=new FileReader();
@@ -168,7 +173,7 @@ function toBase64(file){
   });
 }
 
-/* ===== SAVE LETTER ===== */
+/* ================= SAVE LETTER ================= */
 window.saveLetter = async function(){
 
   let id = Math.random().toString(36).substring(2,10);
@@ -195,7 +200,7 @@ window.saveLetter = async function(){
   show(data,id);
 };
 
-/* ===== SHOW LETTER ===== */
+/* ================= SHOW LETTER ================= */
 function show(d,id){
 
   form.style.display="none";
@@ -224,7 +229,7 @@ function show(d,id){
   `;
 }
 
-/* ===== SHARE ===== */
+/* ================= SHARE ================= */
 window.share = async function(url){
   if(navigator.share){
     navigator.share({ title:"Fancy Letter", url });
@@ -233,13 +238,13 @@ window.share = async function(url){
   }
 };
 
-/* ===== COPY ===== */
+/* ================= COPY ================= */
 window.copyLink = function(url){
   navigator.clipboard.writeText(url);
   alert("لینک کپی شد 📋");
 };
 
-/* ===== LOAD LETTER BY LINK ===== */
+/* ================= LOAD BY LINK ================= */
 window.onload = async function(){
 
   let id = new URLSearchParams(location.search).get("id");
