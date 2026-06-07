@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro</title>
+<title>Fancy Letter AI Pro - Offline</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
@@ -18,7 +17,6 @@ body{
   align-items:center;
   min-height:100vh;
 }
-
 .box,.card{
   width:92%;
   max-width:450px;
@@ -28,7 +26,6 @@ body{
   border-radius:20px;
   text-align:center;
 }
-
 input,textarea,select,button{
   width:100%;
   padding:10px;
@@ -36,32 +33,27 @@ input,textarea,select,button{
   border-radius:10px;
   border:none;
 }
-
 button{
   background:linear-gradient(45deg,#00d4ff,#00ffcc);
   font-weight:bold;
   cursor:pointer;
 }
-
 .card{
   display:none;
   background:white;
   color:black;
 }
-
 img{
   width:120px;
   height:120px;
   border-radius:50%;
   object-fit:cover;
 }
-
 #text{
   white-space:pre-wrap;
   margin-top:10px;
   line-height:2;
 }
-
 #status{
   font-size:14px;
   color:#00ffcc;
@@ -72,7 +64,7 @@ img{
 <body>
 
 <div class="box" id="form">
-  <h2>💌 Fancy Letter AI Pro</h2>
+  <h2>💌 Fancy Letter AI Pro - Offline</h2>
   <div id="status"></div>
 
   <input id="student" placeholder="نام دانش‌آموز">
@@ -104,23 +96,19 @@ img{
   <img id="photo">
   <h2 id="title"></h2>
   <p id="text"></p>
-
   <audio id="music" controls loop></audio>
-
   <div id="qr"></div>
   <br>
-  <button onclick="copyLink()">📋 کپی لینک</button>
+  <button onclick="downloadLetter()">📥 دانلود نامه</button>
 </div>
 
 <script>
-
-/* ================= DOM ================= */
 const form = document.getElementById("form");
 const card = document.getElementById("card");
-const text = document.getElementById("text");
-const title = document.getElementById("title");
-const photo = document.getElementById("photo");
-const music = document.getElementById("music");
+const textEl = document.getElementById("text");
+const titleEl = document.getElementById("title");
+const photoEl = document.getElementById("photo");
+const musicEl = document.getElementById("music");
 const qr = document.getElementById("qr");
 const statusBox = document.getElementById("status");
 
@@ -129,28 +117,22 @@ const musicUrl = document.getElementById("musicUrl");
 const musicFile = document.getElementById("musicFile");
 
 musicMode.onchange = () => {
-  musicUrl.style.display = "none";
-  musicFile.style.display = "none";
-  if (musicMode.value === "url") musicUrl.style.display = "block";
-  if (musicMode.value === "upload") musicFile.style.display = "block";
+  musicUrl.style.display="none";
+  musicFile.style.display="none";
+  if (musicMode.value==="url") musicUrl.style.display="block";
+  if (musicMode.value==="upload") musicFile.style.display="block";
 };
 
-/* ================= SUPABASE ================= */
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"; // پروژه خودت
-const SUPABASE_KEY = "sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"; // publishable key
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* ================= HELPERS ================= */
-function setStatus(t, c="#00ffcc"){ statusBox.innerText=t; statusBox.style.color=c; }
-function toBase64(file){ return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); }); }
+function setStatus(msg, color="#00ffcc"){ statusBox.innerText=msg; statusBox.style.color=color; }
+function toBase64(file){ return new Promise(r=>{ const reader=new FileReader(); reader.onload=()=>r(reader.result); reader.readAsDataURL(file); }); }
 function generateAI(student, teacher){ return `معلم عزیز ${teacher}\n\nسال تحصیلی با تلاش و یادگیری گذشت...\n\nبا احترام\n${student}`; }
 function smartMusic(){ return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; }
 
-/* ================= CREATE ================= */
+let savedLetter = null;
+
 async function createLetter(){
   try{
     setStatus("⏳ در حال ساخت...");
-
     const student = document.getElementById("student").value;
     const teacher = document.getElementById("teacher").value;
     let msg = document.getElementById("msg").value;
@@ -165,46 +147,42 @@ async function createLetter(){
     if(musicMode.value==="upload"){ const mf=musicFile.files[0]; musicValue=mf?await toBase64(mf):""; }
     if(musicMode.value==="smart") musicValue=smartMusic();
 
-    const {data,error} = await supabaseClient
-      .from("letters")
-      .insert([{student,teacher,msg,image,music:musicValue}])
-      .select();
+    savedLetter = {student, teacher, msg, image, music:musicValue};
 
-    if(error){ setStatus("❌ خطا: "+error.message,"red"); return; }
+    form.style.display="none";
+    card.style.display="block";
 
-    const id = data[0].id;
-    const link = location.origin + "?id="+id;
-    setStatus("✅ ساخته شد");
-    show(data[0], link);
+    titleEl.innerText = teacher;
+    textEl.innerText = msg;
+    photoEl.src = image || "https://via.placeholder.com/120";
+    musicEl.src = musicValue || "";
 
-  }catch(e){ setStatus("❌ خطای ناشناخته","red"); console.error(e); }
+    // لینک local برای QR
+    const blob = new Blob([JSON.stringify(savedLetter)], {type:'application/json'});
+    const link = URL.createObjectURL(blob);
+    qr.innerHTML="";
+    const canvas = document.createElement("canvas");
+    QRCode.toCanvas(canvas, link, (err)=>{
+      if(!err) qr.appendChild(canvas);
+    });
+
+    setStatus("✅ نامه آماده شد");
+
+  }catch(e){
+    setStatus("❌ خطای ناشناخته","red");
+    console.error(e);
+  }
 }
 
-/* ================= SHOW ================= */
-function show(data,link){
-  form.style.display="none"; card.style.display="block";
-  title.innerText=data.teacher; text.innerText=data.msg;
-  photo.src=data.image||"https://via.placeholder.com/120";
-  music.src=data.music||"";
-  window.generatedLink=link;
-  qr.innerHTML="";
-  const canvas=document.createElement("canvas");
-  QRCode.toCanvas(canvas, link, err=>{if(!err) qr.appendChild(canvas);});
+function downloadLetter(){
+  if(!savedLetter) return;
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savedLetter, null, 2));
+  const a = document.createElement('a');
+  a.href = dataStr;
+  a.download = "letter.json";
+  a.click();
 }
-
-/* ================= COPY ================= */
-function copyLink(){ navigator.clipboard.writeText(window.generatedLink); alert("لینک کپی شد!"); }
-
-/* ================= LOAD ================= */
-const params=new URLSearchParams(location.search);
-const id=params.get("id");
-if(id){ (async()=>{
-  const {data,error}=await supabaseClient
-    .from("letters").select().eq("id",id).single();
-  if(error||!data){ setStatus("نامه پیدا نشد","red"); return; }
-  show(data, location.href);
-})(); }
-
 </script>
+
 </body>
 </html>
