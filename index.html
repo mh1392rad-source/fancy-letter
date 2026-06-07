@@ -218,10 +218,21 @@ function toBase64(file){
 
 /* ===== AI TEXT ===== */
 async function generateText(student,teacher,subject){
-  return `دانش‌آموز عزیز ${student}
+  return `معلم عزیزم ${teacher}
 
-با احترام به معلم گرامی ${teacher}
-از تلاش‌های شما در درس ${subject} سپاسگزاریم 🌟`;
+سال تحصیلی به سرعت گذشت و من از ته قلبم از زحمات شما بی‌نهایت سپاسگزارم.
+
+هر لحظه‌ای که در کلاس شما بودم، برای من یک درس بزرگ و یک خاطره قشنگ بود.
+
+شما نه تنها به من درس خواندن یاد دادید، بلکه به من یاد دادید چطور آدم بهتری باشم.
+
+دلم برای کلاس‌های پرانرژی و مهربانی‌تان تنگ خواهد شد.
+
+امیدوارم همیشه سلامت و شاد باشید و بدانید که من هیچ‌وقت زحمات شما را فراموش نمی‌کنم.
+
+با احترام و عشق فراوان
+
+${student}`;
 }
 
 /* ===== MUSIC SMART ===== */
@@ -278,7 +289,7 @@ function show(d){
 
   setTimeout(()=>card.classList.add("show"),100);
 
-  title.innerText="معلم گرامی";
+  title.innerText = teacher.value;
 
   photo.src=d.img;
 
@@ -302,9 +313,4 @@ function show(d){
 
 /* ===== SHARE ===== */
 window.copy=u=>{navigator.clipboard.writeText(u);alert("کپی شد");}
-window.share=u=>navigator.share?navigator.share({url:u}):copy(u);
-
-</script>
-
-</body>
-</html>
+window.share=u=>navigator.share?navigator.share({url:u
