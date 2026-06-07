@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter GOD REAL 💎</title>
+<title>Fancy Letter GOD VERSION 💌</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -12,20 +12,20 @@
 body{
   margin:0;
   font-family:tahoma;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  min-height:100vh;
+  background:linear-gradient(135deg,#141e30,#243b55);
   display:flex;
   justify-content:center;
   align-items:center;
+  min-height:100vh;
 }
 
 .box,.card{
   width:92%;
   max-width:520px;
   padding:20px;
-  border-radius:18px;
+  border-radius:20px;
   text-align:center;
-  background:rgba(0,0,0,0.88);
+  background:rgba(0,0,0,0.85);
   color:white;
   box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
@@ -36,7 +36,6 @@ input,textarea,select,button{
   margin:6px 0;
   border-radius:10px;
   border:none;
-  outline:none;
 }
 
 button{
@@ -46,15 +45,13 @@ button{
   transition:0.3s;
 }
 
-button:hover{
-  transform:scale(1.04);
-}
+button:hover{transform:scale(1.05);}
 
 .card{
   display:none;
   background:white;
   color:black;
-  transform:translateY(30px) scale(0.95);
+  transform:translateY(40px) scale(0.95);
   opacity:0;
   transition:0.6s;
 }
@@ -69,11 +66,23 @@ img{
   height:120px;
   border-radius:50%;
   object-fit:cover;
+  border:3px solid #ff4fa3;
 }
+
 #text{
   white-space:pre-wrap;
-  line-height:1.9;
+  line-height:2;
   margin-top:10px;
+}
+
+/* typing cursor */
+.typing::after{
+  content:"|";
+  animation:blink 0.8s infinite;
+}
+
+@keyframes blink{
+  50%{opacity:0;}
 }
 </style>
 </head>
@@ -81,16 +90,27 @@ img{
 <body>
 
 <div class="box" id="form">
-<h2>💎 GOD REAL VERSION</h2>
+<h2>💌 Fancy Letter GOD</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<input id="subject" placeholder="درس (اختیاری)">
+<input id="subject" placeholder="درس">
+
 <textarea id="msg" placeholder="متن (خالی = AI)"></textarea>
 
-<button onclick="createLetter()">🚀 ساخت نامه</button>
+<input type="file" id="file" accept="image/*">
 
-<div id="status"></div>
+<h3>🎵 موسیقی</h3>
+<select id="musicMode">
+  <option value="url">لینک</option>
+  <option value="upload">آپلود</option>
+  <option value="smart">هوشمند</option>
+</select>
+
+<input id="musicUrl" placeholder="لینک آهنگ">
+<input type="file" id="musicFile" accept="audio/*" style="display:none">
+
+<button onclick="createLetter()">🚀 ساخت نامه</button>
 </div>
 
 <div class="card" id="card">
@@ -98,10 +118,13 @@ img{
 <h2 id="title"></h2>
 <p id="text"></p>
 
+<audio id="music" controls loop></audio>
 <div id="qr"></div>
 
 <button onclick="copyLink()">📋 کپی لینک</button>
 <button onclick="downloadHTML()">⬇ دانلود HTML</button>
+
+<a class="eitaa" href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
 </div>
 
 <script>
@@ -112,68 +135,111 @@ const SUPABASE_KEY = "YOUR_KEY";
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ================= AI LETTER ================= */
-function ai(student, teacher){
+/* ================= MUSIC UI ================= */
+const musicMode = document.getElementById("musicMode");
+const musicUrl = document.getElementById("musicUrl");
+const musicFile = document.getElementById("musicFile");
+
+musicMode.onchange = () => {
+  musicUrl.style.display="none";
+  musicFile.style.display="none";
+
+  if(musicMode.value==="url") musicUrl.style.display="block";
+  if(musicMode.value==="upload") musicFile.style.display="block";
+};
+
+/* ================= BASE64 ================= */
+function toBase64(file){
+  return new Promise(r=>{
+    const fr=new FileReader();
+    fr.onload=()=>r(fr.result);
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ================= AI ================= */
+function ai(student, teacher, subject){
 return `معلم عزیزم ${teacher}
 
-سال تحصیلی به سرعت گذشت و من از ته قلبم از زحمات شما بی‌نهایت سپاسگزارم.
+سال تحصیلی به سرعت گذشت و من از ته قلبم از شما سپاسگزارم.
 
-شما فقط درس ندادید، بلکه الهام زندگی بودید.
+شما فقط درس ندادید، بلکه زندگی یاد دادید.
 
-هر لحظه کلاس شما برای من یک خاطره است.
+هر لحظه کلاس ${subject} برای من خاطره بود.
 
-با احترام و عشق
+با احترام
 ${student}`;
 }
 
-/* ================= CREATE LETTER ================= */
+/* ================= TYPE EFFECT ================= */
+function typeText(el,text){
+  el.innerText="";
+  let i=0;
+  el.classList.add("typing");
+
+  let t=setInterval(()=>{
+    el.innerText+=text[i];
+    i++;
+    if(i>=text.length){
+      clearInterval(t);
+      el.classList.remove("typing");
+    }
+  },20);
+}
+
+/* ================= CREATE ================= */
 window.createLetter = async function(){
 
-  try{
+  const student=document.getElementById("student").value;
+  const teacher=document.getElementById("teacher").value;
+  const subject=document.getElementById("subject").value;
+  const msgInput=document.getElementById("msg").value;
+  const file=document.getElementById("file").files[0];
 
-    const student = document.getElementById("student").value;
-    const teacher = document.getElementById("teacher").value;
-    const subject = document.getElementById("subject").value;
-    let msg = document.getElementById("msg").value;
+  const img=file?await toBase64(file):"";
 
-    if(!msg){
-      msg = ai(student, teacher);
-    }
+  let msg = msgInput || ai(student,teacher,subject);
 
-    const {data, error} = await client.from("letters").insert([{
-      student,
-      teacher,
-      subject,
-      msg
-    }]).select();
+  let musicSrc="";
 
-    if(error){
-      document.getElementById("status").innerText = "❌ " + error.message;
-      return;
-    }
+  if(musicMode.value==="url") musicSrc=musicUrl.value;
 
-    show(data[0]);
-
-  }catch(e){
-    document.getElementById("status").innerText = "❌ Network Error";
+  if(musicMode.value==="upload"){
+    const f=musicFile.files[0];
+    if(f) musicSrc=await toBase64(f);
   }
+
+  if(musicMode.value==="smart"){
+    musicSrc="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+  }
+
+  const {data,error}=await client.from("letters").insert([{
+    student,teacher,subject,msg,image:img,music:musicSrc
+  }]).select();
+
+  if(error){
+    alert("❌ "+error.message);
+    return;
+  }
+
+  show(data[0]);
 };
 
 /* ================= SHOW ================= */
 function show(d){
 
   document.getElementById("form").style.display="none";
-  const card=document.getElementById("card");
-  card.style.display="block";
+  document.getElementById("card").style.display="block";
 
-  setTimeout(()=>card.classList.add("show"),100);
+  document.getElementById("title").innerText=d.teacher;
+  document.getElementById("photo").src=d.image;
+  document.getElementById("music").src=d.music;
 
-  document.getElementById("title").innerText = d.teacher;
-  document.getElementById("text").innerText = d.msg;
+  typeText(document.getElementById("text"),d.msg);
 
   window.link = location.origin + "?id=" + d.id;
 
-  QRCode.toCanvas(document.createElement("canvas"), window.link, (e,c)=>{
+  QRCode.toCanvas(document.createElement("canvas"),window.link,(e,c)=>{
     document.getElementById("qr").innerHTML="";
     document.getElementById("qr").appendChild(c);
   });
@@ -191,26 +257,25 @@ function downloadHTML(){
   const html = `
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"></head>
 <body style="font-family:tahoma;text-align:center">
 <h2>${document.getElementById("title").innerText}</h2>
 <pre>${document.getElementById("text").innerText}</pre>
 </body>
 </html>`;
 
-  const blob = new Blob([html], {type:"text/html"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "letter.html";
+  const blob=new Blob([html],{type:"text/html"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="letter.html";
   a.click();
 }
 
-/* ================= LOAD BY ID ================= */
-const id = new URLSearchParams(location.search).get("id");
+/* ================= LOAD ================= */
+const id=new URLSearchParams(location.search).get("id");
 
 if(id){
   (async()=>{
-    const {data} = await client.from("letters").select().eq("id",id).single();
+    const {data}=await client.from("letters").select().eq("id",id).single();
     if(data) show(data);
   })();
 }
