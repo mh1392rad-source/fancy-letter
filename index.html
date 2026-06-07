@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Letter Upload PRO</title>
+<title>Letter Pro Offline</title>
 
 <style>
 body{
@@ -23,6 +23,7 @@ body{
   width:90%;
   max-width:420px;
   color:white;
+  text-align:center;
 }
 
 input,textarea{
@@ -69,13 +70,13 @@ p{color:#333;line-height:2;}
 <body>
 
 <div class="box" id="form">
-<h2>📸 آپلود واقعی عکس</h2>
+<h2>💌 ساخت نامه رایگان</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
 <textarea id="msg" placeholder="متن نامه"></textarea>
 
-<input type="file" id="file">
+<input type="file" id="file" accept="image/*">
 
 <button onclick="saveLetter()">ساخت نامه</button>
 </div>
@@ -87,59 +88,51 @@ p{color:#333;line-height:2;}
 <p id="link"></p>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+<script>
+let currentID = null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBqyOm4xSfeUrThKDcA0mRM5OSZFOMyWcE",
-  authDomain: "fancy-letter.firebaseapp.com",
-  projectId: "fancy-letter",
-  storageBucket: "fancy-letter.appspot.com",
-  messagingSenderId: "677609888778",
-  appId: "1:677609888778:web:df826638952bd2c59593f3"
-};
+/* تبدیل عکس به Base64 */
+function getBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = err=>reject(err);
+  });
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const storage = getStorage(app);
+/* ساخت نامه */
+async function saveLetter(){
 
-window.saveLetter = async function(){
-
-  let id = Math.random().toString(36).substring(2,10);
+  currentID = Math.random().toString(36).substring(2,10);
 
   let file = document.getElementById("file").files[0];
-
-  let imgURL = "";
+  let img = "";
 
   if(file){
-
-    let imgRef = sRef(storage,"images/"+id);
-
-    await uploadBytes(imgRef,file);
-
-    imgURL = await getDownloadURL(imgRef);
+    img = await getBase64(file);
   }
 
   let data = {
     student: student.value,
     teacher: teacher.value,
     msg: msg.value,
-    img: imgURL
+    img: img
   };
 
-  set(ref(db,"letters/"+id), data);
+  localStorage.setItem("letter_"+currentID, JSON.stringify(data));
 
-  show(data,id);
-};
+  showLetter(data, currentID);
+}
 
-function show(d,id){
+/* نمایش نامه */
+function showLetter(d,id){
 
   form.style.display="none";
   card.style.display="block";
 
   title.innerText="معلم گرامی " + d.teacher;
+
   text.innerHTML=d.msg.replace(/\n/g,"<br>");
 
   photo.src = d.img || "https://master-ai.ir/wp-content/uploads/2025/08/default-student.png";
@@ -149,16 +142,18 @@ function show(d,id){
   linkBox.innerText="🔗 لینک نامه: " + link;
 }
 
-// خواندن لینک
-const url = new URLSearchParams(window.location.search);
-const id = url.get("id");
+/* باز کردن از لینک */
+window.onload = function(){
 
-if(id){
-  get(child(ref(db),"letters/"+id)).then((snap)=>{
-    if(snap.exists()){
-      show(snap.val(),id);
+  let url = new URLSearchParams(window.location.search);
+  let id = url.get("id");
+
+  if(id){
+    let data = localStorage.getItem("letter_"+id);
+    if(data){
+      showLetter(JSON.parse(data), id);
     }
-  });
+  }
 }
 </script>
 
