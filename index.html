@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Luxury Letter</title>
+<title>Ultra Letter Pro</title>
 
 <style>
 body{
   margin:0;
   font-family:tahoma;
-  background:radial-gradient(circle at top,#7b2ff7,#f107a3,#0ff);
-  min-height:100vh;
+  background:radial-gradient(circle at top,#7b2ff7,#f107a3,#00e5ff);
+  height:100vh;
+  overflow:hidden;
   display:flex;
   justify-content:center;
   align-items:center;
-  overflow:hidden;
 }
 
 /* فرم */
@@ -25,7 +25,7 @@ body{
   width:90%;
   max-width:420px;
   color:white;
-  box-shadow:0 0 25px rgba(0,255,255,0.3);
+  box-shadow:0 0 30px rgba(0,255,255,0.3);
 }
 
 input,textarea{
@@ -46,15 +46,15 @@ button{
   cursor:pointer;
 }
 
-/* پاکت لاکچری */
+/* پاکت واقعی‌تر */
 .envelope{
-  width:240px;
-  height:160px;
-  background:linear-gradient(135deg,#ff4fa3,#ff2f8f);
+  width:260px;
+  height:170px;
+  background:linear-gradient(135deg,#ff4fa3,#ff0077);
   border-radius:12px;
   position:relative;
-  box-shadow:0 0 40px rgba(255,0,150,0.4);
   cursor:pointer;
+  box-shadow:0 0 50px rgba(255,0,150,0.5);
   animation:float 2s infinite ease-in-out;
 }
 
@@ -63,46 +63,37 @@ button{
   position:absolute;
   top:0;
   left:0;
-  border-left:120px solid transparent;
-  border-right:120px solid transparent;
-  border-bottom:90px solid rgba(255,255,255,0.15);
+  border-left:130px solid transparent;
+  border-right:130px solid transparent;
+  border-bottom:90px solid rgba(255,255,255,0.2);
 }
 
-/* شناور شدن */
 @keyframes float{
   0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-10px);}
+  50%{transform:translateY(-12px);}
 }
 
 /* نامه */
 .card{
   display:none;
-  background:rgba(255,255,255,0.95);
+  background:white;
   width:90%;
   max-width:600px;
   padding:30px;
   border-radius:25px;
   text-align:center;
-  box-shadow:0 0 40px rgba(0,0,0,0.3);
-  animation:open 0.7s ease;
+  box-shadow:0 0 50px rgba(0,0,0,0.4);
+  animation:open 0.8s ease;
 }
 
 @keyframes open{
-  from{transform:scale(0.6);opacity:0;}
+  from{transform:scale(0.5);opacity:0;}
   to{transform:scale(1);opacity:1;}
 }
 
-h2{
-  color:#d1007a;
-  margin-bottom:10px;
-}
+h2{color:#d1007a;}
+p{color:#333;line-height:2;}
 
-p{
-  color:#333;
-  line-height:2;
-}
-
-/* دکمه لینک */
 a{
   display:inline-block;
   margin-top:15px;
@@ -114,18 +105,15 @@ a{
   font-weight:bold;
 }
 
-/* افکت ذرات */
-.particle{
+/* قلب‌ها */
+.heart{
   position:absolute;
-  width:6px;
-  height:6px;
-  background:white;
-  border-radius:50%;
-  animation:rise 3s linear infinite;
-  opacity:0.7;
+  color:#ff4fa3;
+  font-size:18px;
+  animation:fall 3s linear infinite;
 }
 
-@keyframes rise{
+@keyframes fall{
   from{transform:translateY(0);opacity:1;}
   to{transform:translateY(-300px);opacity:0;}
 }
@@ -135,7 +123,7 @@ a{
 <body>
 
 <div class="box" id="form">
-<h2>💌 ساخت نامه لاکچری</h2>
+<h2>💌 Ultra Letter Pro</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
@@ -157,15 +145,21 @@ a{
 </a>
 </div>
 
+<audio id="sound">
+<source src="https://assets.mixkit.co/sfx/preview/mixkit-paper-slide-1536.mp3" type="audio/mpeg">
+</audio>
+
 <script>
 function start(){
   document.getElementById("form").style.display="none";
   document.getElementById("env").style.display="block";
 
-  createParticles();
+  spawnHearts();
 }
 
 function openLetter(){
+  document.getElementById("sound").play();
+
   document.getElementById("env").style.display="none";
   document.getElementById("card").style.display="block";
 
@@ -176,15 +170,16 @@ function openLetter(){
   document.getElementById("msg").value.replace(/\n/g,"<br>");
 }
 
-/* ذرات لاکچری */
-function createParticles(){
-  for(let i=0;i<25;i++){
-    let p=document.createElement("div");
-    p.className="particle";
-    p.style.left=Math.random()*100+"%";
-    p.style.top=Math.random()*100+"%";
-    p.style.animationDuration=(2+Math.random()*3)+"s";
-    document.body.appendChild(p);
+/* قلب‌ها */
+function spawnHearts(){
+  for(let i=0;i<20;i++){
+    let h=document.createElement("div");
+    h.className="heart";
+    h.innerHTML="❤";
+    h.style.left=Math.random()*100+"%";
+    h.style.top=Math.random()*100+"%";
+    h.style.animationDuration=(2+Math.random()*3)+"s";
+    document.body.appendChild(h);
   }
 }
 </script>
