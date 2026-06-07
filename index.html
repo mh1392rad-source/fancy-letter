@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Letter Creator Pro</title>
+<title>Letter Creator Firebase</title>
 
 <style>
 body{
-  margin:0;
   font-family:tahoma;
+  margin:0;
   background:linear-gradient(120deg,#7b2ff7,#f107a3,#17eaff);
   min-height:100vh;
   display:flex;
@@ -16,14 +16,13 @@ body{
   align-items:center;
 }
 
-.container{
-  background:rgba(0,0,0,0.7);
+.box{
+  background:rgba(0,0,0,0.75);
   padding:20px;
   border-radius:25px;
   width:90%;
   max-width:420px;
   color:white;
-  backdrop-filter:blur(10px);
 }
 
 input,textarea{
@@ -32,7 +31,6 @@ input,textarea{
   margin:6px 0;
   border-radius:10px;
   border:none;
-  outline:none;
 }
 
 button{
@@ -53,84 +51,73 @@ button{
   padding-top:120px;
 }
 
-.profile{
-  width:120px;
-  height:120px;
-  border-radius:50%;
-  position:fixed;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  object-fit:cover;
-  border:4px solid white;
-}
-
 .card{
-  background:rgba(0,0,0,0.75);
+  background:rgba(0,0,0,0.8);
   color:white;
   padding:25px;
   border-radius:25px;
   max-width:600px;
   margin:auto;
   text-align:center;
-  box-shadow:0 0 20px cyan;
-}
-
-a{
-  display:inline-block;
-  margin-top:15px;
-  padding:10px 20px;
-  background:linear-gradient(45deg,#00d4ff,#00ff99);
-  color:black;
-  border-radius:20px;
-  text-decoration:none;
-  font-weight:bold;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="container" id="form">
-<h2>📨 Letter Creator Pro</h2>
+<div class="box" id="form">
+<h2>📨 ساخت نامه</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<input id="school" placeholder="مدرسه">
 <textarea id="msg" placeholder="متن نامه"></textarea>
 
-<label>📷 عکس</label>
-<input type="file" id="img" accept="image/*">
-
-<label>🎵 آهنگ</label>
-<input type="file" id="music" accept="audio/*">
-
-<button onclick="create()">ساخت نامه</button>
+<button onclick="saveLetter()">ساخت و ذخیره</button>
 </div>
 
 <div id="letter">
-
-<img class="profile" id="photo">
-
-<audio id="audio" controls style="position:fixed;bottom:10px;left:10px;width:200px;"></audio>
-
 <div class="card">
 <h2 id="title"></h2>
 <p id="text"></p>
 
-<a href="https://eitaa.com/irandigital_python" target="_blank">
-📢 کانال ایران دیجیتال | Python
-</a>
+<p id="link"></p>
+</div>
 </div>
 
-</div>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
-<script>
-function create(){
+const firebaseConfig = {
+  apiKey: "AIzaSyBqyOm4xSfeUrThKDcA0mRM5OSZFOMyWcE",
+  authDomain: "fancy-letter.firebaseapp.com",
+  projectId: "fancy-letter",
+  storageBucket: "fancy-letter.firebasestorage.app",
+  messagingSenderId: "677609888778",
+  appId: "1:677609888778:web:df826638952bd2c59593f3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ساخت نامه
+window.saveLetter = function(){
+
+  let id = Math.random().toString(36).substring(2,10);
 
   let student = document.getElementById("student").value;
   let teacher = document.getElementById("teacher").value;
   let msg = document.getElementById("msg").value;
+
+  set(ref(db, "letters/" + id), {
+    student: student,
+    teacher: teacher,
+    msg: msg
+  });
+
+  document.getElementById("form").style.display="none";
+  document.getElementById("letter").style.display="block";
 
   document.getElementById("title").innerText =
   "معلم گرامی " + teacher;
@@ -138,20 +125,31 @@ function create(){
   document.getElementById("text").innerHTML =
   msg.replace(/\n/g,"<br>");
 
-  let img = document.getElementById("img").files[0];
-  if(img){
-    document.getElementById("photo").src = URL.createObjectURL(img);
-  }
+  document.getElementById("link").innerHTML =
+  "🔗 لینک نامه: " + window.location.href + "?id=" + id;
+};
 
-  let music = document.getElementById("music").files[0];
-  if(music){
-    let audio = document.getElementById("audio");
-    audio.src = URL.createObjectURL(music);
-    audio.play();
-  }
+// خواندن نامه از لینک
+const urlParams = new URLSearchParams(window.location.search);
+const id = urlParams.get("id");
 
-  document.getElementById("form").style.display="none";
-  document.getElementById("letter").style.display="block";
+if(id){
+  const dbRef = ref(db);
+
+  get(child(dbRef, "letters/" + id)).then((snapshot) => {
+    if(snapshot.exists()){
+      let data = snapshot.val();
+
+      document.getElementById("form").style.display="none";
+      document.getElementById("letter").style.display="block";
+
+      document.getElementById("title").innerText =
+      "معلم گرامی " + data.teacher;
+
+      document.getElementById("text").innerHTML =
+      data.msg.replace(/\n/g,"<br>");
+    }
+  });
 }
 </script>
 
