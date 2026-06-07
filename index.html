@@ -3,153 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Letter Creator Firebase</title>
+<title>Letter Card</title>
 
 <style>
 body{
-  font-family:tahoma;
   margin:0;
-  background:linear-gradient(120deg,#7b2ff7,#f107a3,#17eaff);
+  font-family:tahoma;
+  background:linear-gradient(135deg,#7b2ff7,#f107a3,#17eaff);
   min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-.box{
-  background:rgba(0,0,0,0.75);
-  padding:20px;
-  border-radius:25px;
-  width:90%;
-  max-width:420px;
-  color:white;
-}
-
-input,textarea{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
+/* پاکت اولیه */
+.envelope{
+  width:220px;
+  height:140px;
+  background:#ff4fa3;
+  position:relative;
   border-radius:10px;
-  border:none;
-}
-
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:20px;
-  background:#00ffcc;
-  font-weight:bold;
   cursor:pointer;
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
+  transition:0.3s;
 }
 
-#letter{
-  display:none;
-  position:fixed;
-  inset:0;
-  overflow:auto;
-  padding-top:120px;
+.envelope:before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:0;
+  height:0;
+  border-left:110px solid transparent;
+  border-right:110px solid transparent;
+  border-bottom:80px solid #ff2f8f;
 }
 
+.envelope:hover{
+  transform:scale(1.05);
+}
+
+/* کارت نامه */
 .card{
-  background:rgba(0,0,0,0.8);
-  color:white;
+  display:none;
+  background:#fff;
+  width:90%;
+  max-width:500px;
+  border-radius:20px;
   padding:25px;
-  border-radius:25px;
-  max-width:600px;
-  margin:auto;
-  text-align:center;
+  box-shadow:0 0 30px rgba(0,0,0,0.3);
+  animation:open 0.6s ease;
+}
+
+@keyframes open{
+  from{transform:scale(0.5);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+
+h2{
+  color:#d1007a;
+}
+
+p{
+  color:#333;
+  line-height:2;
+}
+
+.signature{
+  margin-top:20px;
+  color:#555;
+  font-weight:bold;
+}
+
+/* دکمه لینک */
+a{
+  display:inline-block;
+  margin-top:15px;
+  padding:10px 20px;
+  background:linear-gradient(45deg,#00d4ff,#00ff99);
+  color:black;
+  border-radius:20px;
+  text-decoration:none;
+  font-weight:bold;
 }
 </style>
-
 </head>
+
 <body>
 
-<div class="box" id="form">
-<h2>📨 ساخت نامه</h2>
+<!-- پاکت -->
+<div class="envelope" onclick="openLetter()"></div>
 
-<input id="student" placeholder="نام دانش‌آموز">
-<input id="teacher" placeholder="نام معلم">
-<textarea id="msg" placeholder="متن نامه"></textarea>
+<!-- نامه -->
+<div class="card" id="card">
+  <h2 id="title">💌 معلم گرامی</h2>
 
-<button onclick="saveLetter()">ساخت و ذخیره</button>
+  <p id="text">
+  این یک نامه نمونه است.  
+  متن بعداً از Firebase یا فرم پر می‌شود.
+  </p>
+
+  <div class="signature">با احترام 💖</div>
+
+  <a href="https://eitaa.com/irandigital_python" target="_blank">
+    📢 کانال ایران دیجیتال | Python
+  </a>
 </div>
 
-<div id="letter">
-<div class="card">
-<h2 id="title"></h2>
-<p id="text"></p>
-
-<p id="link"></p>
-</div>
-</div>
-
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBqyOm4xSfeUrThKDcA0mRM5OSZFOMyWcE",
-  authDomain: "fancy-letter.firebaseapp.com",
-  projectId: "fancy-letter",
-  storageBucket: "fancy-letter.firebasestorage.app",
-  messagingSenderId: "677609888778",
-  appId: "1:677609888778:web:df826638952bd2c59593f3"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// ساخت نامه
-window.saveLetter = function(){
-
-  let id = Math.random().toString(36).substring(2,10);
-
-  let student = document.getElementById("student").value;
-  let teacher = document.getElementById("teacher").value;
-  let msg = document.getElementById("msg").value;
-
-  set(ref(db, "letters/" + id), {
-    student: student,
-    teacher: teacher,
-    msg: msg
-  });
-
-  document.getElementById("form").style.display="none";
-  document.getElementById("letter").style.display="block";
-
-  document.getElementById("title").innerText =
-  "معلم گرامی " + teacher;
-
-  document.getElementById("text").innerHTML =
-  msg.replace(/\n/g,"<br>");
-
-  document.getElementById("link").innerHTML =
-  "🔗 لینک نامه: " + window.location.href + "?id=" + id;
-};
-
-// خواندن نامه از لینک
-const urlParams = new URLSearchParams(window.location.search);
-const id = urlParams.get("id");
-
-if(id){
-  const dbRef = ref(db);
-
-  get(child(dbRef, "letters/" + id)).then((snapshot) => {
-    if(snapshot.exists()){
-      let data = snapshot.val();
-
-      document.getElementById("form").style.display="none";
-      document.getElementById("letter").style.display="block";
-
-      document.getElementById("title").innerText =
-      "معلم گرامی " + data.teacher;
-
-      document.getElementById("text").innerHTML =
-      data.msg.replace(/\n/g,"<br>");
-    }
-  });
+<script>
+function openLetter(){
+  document.querySelector(".envelope").style.display="none";
+  document.getElementById("card").style.display="block";
 }
 </script>
 
