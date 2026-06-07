@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro - Offline</title>
+<title>Fancy Letter AI Pro - Premium</title>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
@@ -11,51 +11,86 @@
 body{
   margin:0;
   font-family:tahoma;
-  background:linear-gradient(135deg,#141e30,#243b55);
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   display:flex;
   justify-content:center;
   align-items:center;
   min-height:100vh;
 }
-.box,.card{
-  width:92%;
-  max-width:450px;
-  background:rgba(0,0,0,0.85);
-  color:white;
-  padding:20px;
-  border-radius:20px;
-  text-align:center;
+
+.container{
+  width:95%;
+  max-width:460px;
+  animation:fade 0.8s ease-in;
 }
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(20px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.box,.card{
+  background:rgba(0,0,0,0.8);
+  color:white;
+  padding:18px;
+  border-radius:18px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
 input,textarea,select,button{
   width:100%;
   padding:10px;
   margin:6px 0;
   border-radius:10px;
   border:none;
+  outline:none;
 }
+
 button{
-  background:linear-gradient(45deg,#00d4ff,#00ffcc);
+  background:linear-gradient(45deg,#00c6ff,#0072ff);
+  color:white;
   font-weight:bold;
   cursor:pointer;
+  transition:0.3s;
 }
+
+button:hover{
+  transform:scale(1.03);
+}
+
 .card{
   display:none;
   background:white;
   color:black;
 }
+
 img{
-  width:120px;
-  height:120px;
+  width:110px;
+  height:110px;
   border-radius:50%;
   object-fit:cover;
+  border:3px solid #0072ff;
 }
+
 #text{
   white-space:pre-wrap;
-  margin-top:10px;
   line-height:2;
+  margin-top:10px;
 }
+
+.template{
+  display:flex;
+  gap:5px;
+}
+
+.template button{
+  flex:1;
+  font-size:12px;
+}
+
 #status{
-  font-size:14px;
+  font-size:13px;
   color:#00ffcc;
 }
 </style>
@@ -63,15 +98,18 @@ img{
 
 <body>
 
+<div class="container">
+
+<!-- FORM -->
 <div class="box" id="form">
-  <h2>💌 Fancy Letter AI Pro - Offline</h2>
+  <h2>💌 Fancy Letter AI Pro</h2>
   <div id="status"></div>
 
   <input id="student" placeholder="نام دانش‌آموز">
   <input id="teacher" placeholder="نام معلم">
-  <input id="subject" placeholder="درس">
 
   <textarea id="msg" placeholder="متن (اختیاری)"></textarea>
+
   <select id="mode">
     <option value="manual">دستی</option>
     <option value="ai">هوش مصنوعی</option>
@@ -79,27 +117,35 @@ img{
 
   <input type="file" id="file" accept="image/*">
 
-  <h3>🎵 موسیقی</h3>
-  <select id="musicMode">
-    <option value="url">لینک</option>
-    <option value="upload">آپلود</option>
-    <option value="smart">هوشمند</option>
-  </select>
+  <h4>🎨 قالب نامه</h4>
+  <div class="template">
+    <button onclick="setTemplate(1)">کلاسیک</button>
+    <button onclick="setTemplate(2)">رمانتیک</button>
+    <button onclick="setTemplate(3)">مدرن</button>
+  </div>
 
-  <input id="musicUrl" placeholder="لینک آهنگ">
-  <input type="file" id="musicFile" accept="audio/*" style="display:none">
+  <h4>🎵 موسیقی</h4>
+  <input id="musicUrl" placeholder="لینک موسیقی (اختیاری)">
 
   <button onclick="createLetter()">🚀 ساخت نامه</button>
 </div>
 
+<!-- CARD -->
 <div class="card" id="card">
   <img id="photo">
   <h2 id="title"></h2>
   <p id="text"></p>
+
   <audio id="music" controls loop></audio>
+
   <div id="qr"></div>
+
   <br>
-  <button onclick="downloadLetter()">📥 دانلود نامه</button>
+  <button onclick="downloadLetter()">📥 دانلود</button>
+  <button onclick="share()">🔗 اشتراک‌گذاری</button>
+  <button onclick="location.reload()">🔄 جدید</button>
+</div>
+
 </div>
 
 <script>
@@ -112,42 +158,56 @@ const musicEl = document.getElementById("music");
 const qr = document.getElementById("qr");
 const statusBox = document.getElementById("status");
 
-const musicMode = document.getElementById("musicMode");
-const musicUrl = document.getElementById("musicUrl");
-const musicFile = document.getElementById("musicFile");
+let templateType = 1;
+let saved = null;
 
-musicMode.onchange = () => {
-  musicUrl.style.display="none";
-  musicFile.style.display="none";
-  if (musicMode.value==="url") musicUrl.style.display="block";
-  if (musicMode.value==="upload") musicFile.style.display="block";
-};
+function setStatus(t,c="#00ffcc"){statusBox.innerText=t;statusBox.style.color=c;}
+function setTemplate(t){templateType=t;}
 
-function setStatus(msg, color="#00ffcc"){ statusBox.innerText=msg; statusBox.style.color=color; }
-function toBase64(file){ return new Promise(r=>{ const reader=new FileReader(); reader.onload=()=>r(reader.result); reader.readAsDataURL(file); }); }
-function generateAI(student, teacher){ return `معلم عزیز ${teacher}\n\nسال تحصیلی با تلاش و یادگیری گذشت...\n\nبا احترام\n${student}`; }
-function smartMusic(){ return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; }
+function toBase64(file){
+  return new Promise(r=>{
+    const reader=new FileReader();
+    reader.onload=()=>r(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
 
-let savedLetter = null;
+// ===== متن هوش مصنوعی جدید =====
+function generateAI(student, teacher){
+  return `معلم عزیز ${teacher}
 
+سال تحصیلی به سرعت گذشت و من از ته قلبم از زحمات شما بی‌نهایت سپاسگزارم.
+
+هر لحظه‌ای که در کلاس شما بودم، برای من یک درس بزرگ و یک خاطره قشنگ بود.
+
+شما نه تنها به من درس خواندن یاد دادید، بلکه به من یاد دادید چطور آدم بهتری باشم.
+
+دلم برای کلاس‌های پرانرژی و مهربانی‌تان تنگ خواهد شد.
+
+امیدوارم همیشه سلامت و شاد باشید و بدانید که من هیچ‌وقت زحمات شما را فراموش نمی‌کنم.
+
+با احترام و عشق فراوان
+${student}`;
+}
+
+// ===== ساخت نامه =====
 async function createLetter(){
   try{
     setStatus("⏳ در حال ساخت...");
+
     const student = document.getElementById("student").value;
     const teacher = document.getElementById("teacher").value;
     let msg = document.getElementById("msg").value;
     const mode = document.getElementById("mode").value;
     const imgFile = document.getElementById("file").files[0];
+
     const image = imgFile ? await toBase64(imgFile) : "";
 
-    if(!msg || mode==="ai") msg = generateAI(student, teacher);
+    if(mode === "ai" || !msg) msg = generateAI(student, teacher);
 
-    let musicValue="";
-    if(musicMode.value==="url") musicValue=musicUrl.value;
-    if(musicMode.value==="upload"){ const mf=musicFile.files[0]; musicValue=mf?await toBase64(mf):""; }
-    if(musicMode.value==="smart") musicValue=smartMusic();
+    const music = document.getElementById("musicUrl").value;
 
-    savedLetter = {student, teacher, msg, image, music:musicValue};
+    saved = {student, teacher, msg, image, music};
 
     form.style.display="none";
     card.style.display="block";
@@ -155,32 +215,34 @@ async function createLetter(){
     titleEl.innerText = teacher;
     textEl.innerText = msg;
     photoEl.src = image || "https://via.placeholder.com/120";
-    musicEl.src = musicValue || "";
+    musicEl.src = music || "";
 
-    // لینک local برای QR
-    const blob = new Blob([JSON.stringify(savedLetter)], {type:'application/json'});
-    const link = URL.createObjectURL(blob);
+    const link = URL.createObjectURL(new Blob([JSON.stringify(saved)], {type:"application/json"}));
+
     qr.innerHTML="";
     const canvas = document.createElement("canvas");
-    QRCode.toCanvas(canvas, link, (err)=>{
-      if(!err) qr.appendChild(canvas);
-    });
+    QRCode.toCanvas(canvas, link);
+    qr.appendChild(canvas);
 
-    setStatus("✅ نامه آماده شد");
+    setStatus("✅ آماده شد");
 
   }catch(e){
-    setStatus("❌ خطای ناشناخته","red");
+    setStatus("❌ خطا","red");
     console.error(e);
   }
 }
 
+// ===== دانلود و اشتراک گذاری =====
 function downloadLetter(){
-  if(!savedLetter) return;
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savedLetter, null, 2));
-  const a = document.createElement('a');
-  a.href = dataStr;
+  const a = document.createElement("a");
+  a.href = "data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(saved,null,2));
   a.download = "letter.json";
   a.click();
+}
+
+function share(){
+  navigator.clipboard.writeText(JSON.stringify(saved));
+  alert("💾 لینک یا محتوا کپی شد!");
 }
 </script>
 
