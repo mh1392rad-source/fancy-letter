@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter 🌍 FINAL</title>
+<title>Fancy Letter 🌍 AI EDITION</title>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
@@ -28,7 +28,7 @@ body{
   text-align:center;
 }
 
-input,textarea{
+input,textarea,select{
   width:100%;
   padding:10px;
   margin:6px 0;
@@ -80,11 +80,19 @@ audio{
 
 <!-- FORM -->
 <div class="box" id="form">
-<h2>💌 Fancy Letter</h2>
+<h2>💌 Fancy Letter AI</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<textarea id="msg" placeholder="متن نامه"></textarea>
+<input id="subject" placeholder="درس معلم (مثلاً ریاضی)">
+
+<textarea id="msg" placeholder="اگر دستی می‌نویسی اینجا بنویس"></textarea>
+
+<select id="mode">
+  <option value="manual">✍️ نوشتن دستی</option>
+  <option value="ai">🤖 ساخت با هوش مصنوعی</option>
+</select>
+
 <input type="file" id="file">
 <input id="musicUrl" placeholder="لینک آهنگ">
 
@@ -101,7 +109,6 @@ audio{
 
 <div id="qr"></div>
 
-<!-- 🔥 لینک کانال ایتا -->
 <div style="margin-top:15px;">
   <a href="https://eitaa.com/irandigital_python" target="_blank"
      style="
@@ -112,7 +119,6 @@ audio{
         border-radius:12px;
         text-decoration:none;
         font-weight:bold;
-        margin-top:10px;
      ">
     📢 ورود به کانال ایتا
   </a>
@@ -124,11 +130,23 @@ audio{
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-/* 🔥 SUPABASE */
 const supabase = createClient(
 "https://ycbnblhxzzcslturozrf.supabase.co",
 "sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
 );
+
+/* ===== AI TEXT (demo version) ===== */
+async function generateAI(student, teacher, subject){
+  // 🔥 نسخه ساده (بدون API Key)
+  return `دانش‌آموز عزیز ${student}
+
+با احترام به معلم گرامی ${teacher}
+
+از تلاش‌های شما در درس ${subject} سپاسگزاریم.
+امیدواریم همیشه موفق و سربلند باشید 🌟
+
+با آرزوی بهترین‌ها 💙`;
+}
 
 /* ===== IMAGE ===== */
 function toBase64(file){
@@ -139,7 +157,7 @@ function toBase64(file){
   });
 }
 
-/* ===== SAVE LETTER ===== */
+/* ===== SAVE ===== */
 window.saveLetter = async function(){
 
   let id = Math.random().toString(36).substring(2,10);
@@ -147,11 +165,26 @@ window.saveLetter = async function(){
   let file = document.getElementById("file").files[0];
   let img = file ? await toBase64(file) : "";
 
+  let mode = document.getElementById("mode").value;
+
+  let msgText = "";
+
+  if(mode === "ai"){
+    msgText = await generateAI(
+      student.value,
+      teacher.value,
+      subject.value
+    );
+  } else {
+    msgText = msg.value;
+  }
+
   const data = {
     id,
     student: student.value,
     teacher: teacher.value,
-    msg: msg.value,
+    subject: subject.value,
+    msg: msgText,
     img,
     music: musicUrl.value
   };
@@ -169,7 +202,7 @@ window.saveLetter = async function(){
   show(data,id);
 };
 
-/* ===== SHOW LETTER ===== */
+/* ===== SHOW ===== */
 function show(d,id){
 
   form.style.display="none";
@@ -190,7 +223,6 @@ function show(d,id){
     <button onclick="share('${url}')">📤 اشتراک</button>
   `;
 
-  /* QR CODE */
   QRCode.toCanvas(document.createElement("canvas"), url, function (err, canvas) {
     document.getElementById("qr").innerHTML = "";
     document.getElementById("qr").appendChild(canvas);
@@ -212,7 +244,7 @@ window.share = function(url){
   }
 };
 
-/* ===== LOAD LETTER ===== */
+/* ===== LOAD ===== */
 window.onload = async function(){
 
   const id = new URLSearchParams(location.search).get("id");
