@@ -3,91 +3,200 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro + Supabase + Music</title>
+<title>Fancy Letter AI Pro Ultra</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
 :root{
-  --bg1:#141e30;
-  --bg2:#243b55;
-  --card:#ffffff;
-  --primary:#00d4ff;
-  --accent:#ff4fa3;
+  --bg1:#0f2027;
+  --bg2:#203a43;
+  --bg3:#2c5364;
+  --accent:#00d4ff;
+  --pink:#ff4fa3;
 }
+
 body{
-  margin:0;font-family:tahoma;background:linear-gradient(135deg,var(--bg1),var(--bg2));display:flex;justify-content:center;align-items:center;min-height:100vh;
+  margin:0;
+  font-family:tahoma;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
+
+/* ===== BOX ===== */
 .box{
-  background:rgba(0,0,0,0.85);padding:22px;border-radius:22px;width:92%;max-width:430px;color:white;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:fadeIn 0.6s ease;
+  width:92%;
+  max-width:450px;
+  background:rgba(0,0,0,0.85);
+  color:white;
+  padding:22px;
+  border-radius:22px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  animation:fadeIn 0.8s ease;
 }
-input,textarea,select,button{width:100%;padding:11px;margin:7px 0;border-radius:10px;border:none;outline:none;}
+
+input,textarea,select,button{
+  width:100%;
+  padding:11px;
+  margin:7px 0;
+  border:none;
+  border-radius:12px;
+  outline:none;
+}
+
+/* ===== BUTTON ===== */
 button{
-  width:100%;padding:13px;margin-top:8px;border:none;border-radius:15px;background:linear-gradient(45deg,var(--primary),#00ffcc);font-weight:bold;cursor:pointer;transition:0.3s;
+  background:linear-gradient(45deg,var(--accent),#00ffcc);
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
 }
-button:hover{transform:scale(1.05);box-shadow:0 5px 15px rgba(0,212,255,0.4);}
+
+button:hover{
+  transform:scale(1.05);
+  box-shadow:0 8px 20px rgba(0,212,255,0.4);
+}
+
+/* ===== CARD ===== */
 .card{
-  display:none;background:var(--card);width:92%;max-width:520px;padding:28px;border-radius:22px;text-align:center;transform:translateY(60px) scale(0.95);opacity:0;transition:all 0.7s ease;box-shadow:0 15px 40px rgba(0,0,0,0.3);color:black;
+  display:none;
+  width:92%;
+  max-width:520px;
+  background:white;
+  color:black;
+  padding:25px;
+  border-radius:22px;
+  text-align:center;
+  transform:translateY(40px) scale(0.9);
+  opacity:0;
+  transition:all 0.7s ease;
 }
-.card.show{transform:translateY(0) scale(1);opacity:1;}
-img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);}
-#text{margin-top:15px;font-size:15px;line-height:1.8;white-space:pre-wrap;}
-#qr{margin-top:15px;}
-.eitaa{display:block;margin-top:16px;padding:12px;background:linear-gradient(45deg,var(--accent),#ffb347);color:white;border-radius:12px;text-decoration:none;font-weight:bold;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.card.show{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+
+/* ===== IMAGE ===== */
+img{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid var(--pink);
+  transition:0.4s;
+}
+
+img:hover{
+  transform:scale(1.1) rotate(-3deg);
+}
+
+/* ===== TEXT TYPE ===== */
+#text{
+  margin-top:15px;
+  font-size:15px;
+  line-height:2;
+  white-space:pre-wrap;
+}
+
+/* ===== QR ===== */
+#qr{
+  margin-top:15px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
 </style>
 </head>
 
 <body>
 
+<!-- ================= FORM ================= -->
 <div class="box" id="form">
-<h2>💌 Fancy Letter AI Pro</h2>
+<h2>💌 Fancy Letter AI Ultra</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<input id="subject" placeholder="درس معلم">
-<textarea id="msg" placeholder="متن نامه"></textarea>
+<input id="subject" placeholder="درس">
+<textarea id="msg" placeholder="متن نامه (اختیاری)"></textarea>
+
+<select id="mode">
+  <option value="manual">✍️ دستی</option>
+  <option value="ai">🤖 هوش مصنوعی</option>
+</select>
+
 <input type="file" id="file" accept="image/*">
 
 <h3>🎵 موسیقی</h3>
 <select id="musicMode">
-  <option value="url">🔗 لینک</option>
-  <option value="upload">📂 آپلود</option>
+  <option value="url">لینک</option>
+  <option value="upload">آپلود</option>
+  <option value="smart">هوشمند</option>
 </select>
-<input id="musicUrl" placeholder="لینک آهنگ">
+
+<input id="musicUrl" placeholder="لینک موسیقی">
 <input type="file" id="musicFile" accept="audio/*" style="display:none">
 
-<button onclick="createLetter()">ساخت نامه 🚀</button>
+<button onclick="createLetter()">🚀 ساخت نامه</button>
+
+<div id="status"></div>
 </div>
 
+<!-- ================= CARD ================= -->
 <div class="card" id="card">
+
 <img id="photo">
 <h2 id="title"></h2>
 <p id="text"></p>
+
 <audio id="music" controls loop></audio>
+
 <div id="qr"></div>
+
+<br>
+
 <button onclick="copyLink()">📋 کپی لینک</button>
-<a class="eitaa" href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
+<button onclick="downloadHTML()">⬇ دانلود HTML</button>
+
+<br><br>
+<a href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
+
 </div>
 
 <script>
-// ===== Supabase =====
-const SUPABASE_URL = "https://fancy-letter.supabase.co"; // جایگزین با URL پروژه شما
-const SUPABASE_KEY = "sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q";
-const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ===== UI موسیقی =====
+/* ================= SUPABASE ================= */
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_KEY = "YOUR_KEY";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================= STATUS ================= */
+const statusBox = document.getElementById("status");
+function setStatus(t){
+  statusBox.innerText=t;
+}
+
+/* ================= UI ================= */
 const musicMode = document.getElementById("musicMode");
 const musicUrl = document.getElementById("musicUrl");
 const musicFile = document.getElementById("musicFile");
+
 musicMode.onchange = ()=>{
-  musicUrl.style.display="none"; musicFile.style.display="none";
+  musicUrl.style.display="none";
+  musicFile.style.display="none";
   if(musicMode.value==="url") musicUrl.style.display="block";
   if(musicMode.value==="upload") musicFile.style.display="block";
 };
 
-// ===== تبدیل فایل به Base64 =====
+/* ================= BASE64 ================= */
 function toBase64(file){
   return new Promise(r=>{
     const reader=new FileReader();
@@ -96,68 +205,139 @@ function toBase64(file){
   });
 }
 
-// ===== ایجاد نامه =====
-async function createLetter(){
-  const student=document.getElementById("student").value;
-  const teacher=document.getElementById("teacher").value;
-  const subject=document.getElementById("subject").value;
-  const msg=document.getElementById("msg").value;
-  const file=document.getElementById("file").files[0];
-  const img=file?await toBase64(file):"";
+/* ================= AI TEXT ================= */
+function generateAI(student,teacher){
+return `معلم عزیزم ${teacher}
 
-  let musicSrc="";
-  if(musicMode.value==="url") musicSrc=musicUrl.value;
-  if(musicMode.value==="upload"){
-    const mf=musicFile.files[0];
-    if(mf) musicSrc=await toBase64(mf);
-  }
+سال تحصیلی با سرعت گذشت...
+از زحمات شما بسیار سپاسگزارم.
 
-  // ذخیره در Supabase
-  const {data,error}=await supabase.from('letters').insert([
-    {student,teacher,msg,image:img,music:musicSrc,subject}
-  ]).select();
-
-  if(error){alert("خطا: "+error.message); return;}
-  const id=data[0].id;
-  const link=window.location.origin + "/?id=" + id;
-
-  showLetter(data[0], link);
+با عشق فراوان
+${student}`;
 }
 
-// ===== نمایش نامه =====
-function showLetter(data, link){
-  document.getElementById("form").style.display="none";
-  const card=document.getElementById("card");
+/* ================= SMART MUSIC ================= */
+function smartMusic(){
+  return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+}
+
+/* ================= CREATE ================= */
+window.createLetter = async function(){
+
+  try{
+
+    setStatus("⏳ در حال ساخت...");
+
+    const student = document.getElementById("student").value;
+    const teacher = document.getElementById("teacher").value;
+    const subject = document.getElementById("subject").value;
+
+    let msg = document.getElementById("msg").value;
+    const mode = document.getElementById("mode").value;
+
+    const file = document.getElementById("file").files[0];
+    const img = file ? await toBase64(file) : "";
+
+    if(!msg || mode==="ai"){
+      msg = generateAI(student,teacher);
+    }
+
+    let music="";
+    if(musicMode.value==="url") music=musicUrl.value;
+    if(musicMode.value==="upload"){
+      const mf=musicFile.files[0];
+      if(mf) music=await toBase64(mf);
+    }
+    if(musicMode.value==="smart") music=smartMusic();
+
+    const {data,error} = await supabase.from("letters").insert([{
+      student,teacher,msg,image:img,music
+    }]).select();
+
+    if(error){
+      setStatus("❌ خطا: "+error.message);
+      return;
+    }
+
+    const id = data[0].id;
+    const link = location.origin + "?id=" + id;
+
+    setStatus("✅ ساخته شد");
+
+    show(data[0],link);
+
+  }catch(e){
+    setStatus("❌ مشکل شبکه");
+    console.log(e);
+  }
+};
+
+/* ================= SHOW ================= */
+function show(data,link){
+
+  form.style.display="none";
   card.style.display="block";
 
-  document.getElementById("title").innerText = data.teacher || "";
-  document.getElementById("text").innerText = data.msg || "";
-  document.getElementById("photo").src = data.image || "";
-  document.getElementById("music").src = data.music || "";
+  setTimeout(()=>card.classList.add("show"),100);
 
-  window.generatedLink = link;
+  title.innerText=data.teacher;
+  text.innerText=data.msg;
+  photo.src=data.image;
+  music.src=data.music;
 
-  QRCode.toCanvas(document.createElement("canvas"), link, (e,c)=>{
-    document.getElementById("qr").innerHTML="";
-    document.getElementById("qr").appendChild(c);
+  window.generatedLink=link;
+
+  QRCode.toCanvas(document.createElement("canvas"),link,(e,c)=>{
+    qr.innerHTML="";
+    qr.appendChild(c);
   });
 }
 
-// ===== کپی لینک =====
+/* ================= COPY ================= */
 function copyLink(){
   navigator.clipboard.writeText(window.generatedLink);
   alert("کپی شد");
 }
 
-// ===== بررسی لینک id در URL =====
-const params=new URLSearchParams(location.search);
-const id=params.get("id");
+/* ================= DOWNLOAD HTML ================= */
+function downloadHTML(){
+
+  const student = document.getElementById("student").value;
+  const html = `
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${student}</title></head>
+<body style="font-family:tahoma;text-align:center">
+<h2>${student}</h2>
+<p>${document.getElementById("text").innerText}</p>
+</body></html>`;
+
+  const blob = new Blob([html],{type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = student + "-letter.html";
+  a.click();
+}
+
+/* ================= LOAD ================= */
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
 if(id){
   (async()=>{
-    const {data,error}=await supabase.from('letters').select().eq('id',id).single();
-    if(data) showLetter(data, window.location.href);
+    const {data} = await supabase.from("letters").select().eq("id",id).single();
+    if(data) show(data,location.href);
   })();
 }
+
+/* ================= DOM ================= */
+const form=document.getElementById("form");
+const card=document.getElementById("card");
+const text=document.getElementById("text");
+const title=document.getElementById("title");
+const photo=document.getElementById("photo");
+const music=document.getElementById("music");
+const qr=document.getElementById("qr");
+
 </script>
 
 </body>
