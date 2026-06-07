@@ -3,23 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro</title>
+<title>Fancy Letter AI Pro (Fixed)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
-:root{
-  --bg1:#141e30;
-  --bg2:#243b55;
-  --primary:#00d4ff;
-  --accent:#ff4fa3;
-}
-
 body{
   margin:0;
   font-family:tahoma;
-  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  background:linear-gradient(135deg,#141e30,#243b55);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -40,12 +33,12 @@ input,textarea,select,button{
   width:100%;
   padding:10px;
   margin:6px 0;
-  border:none;
   border-radius:10px;
+  border:none;
 }
 
 button{
-  background:linear-gradient(45deg,var(--primary),#00ffcc);
+  background:linear-gradient(45deg,#00d4ff,#00ffcc);
   font-weight:bold;
   cursor:pointer;
 }
@@ -65,32 +58,40 @@ img{
 
 #text{
   white-space:pre-wrap;
-  line-height:2;
   margin-top:10px;
+  line-height:2;
+}
+
+#status{
+  font-size:14px;
+  color:#00ffcc;
 }
 </style>
 </head>
 
 <body>
 
-<!-- FORM -->
 <div class="box" id="form">
+
 <h2>💌 Fancy Letter AI Pro</h2>
+
+<div id="status"></div>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
 <input id="subject" placeholder="درس">
 
-<textarea id="msg" placeholder="متن دستی (اختیاری)"></textarea>
+<textarea id="msg" placeholder="متن (اختیاری)"></textarea>
 
 <select id="mode">
-  <option value="manual">✍️ دستی</option>
-  <option value="ai">🤖 هوش مصنوعی</option>
+  <option value="manual">دستی</option>
+  <option value="ai">هوش مصنوعی</option>
 </select>
 
 <input type="file" id="file" accept="image/*">
 
 <h3>🎵 موسیقی</h3>
+
 <select id="musicMode">
   <option value="url">لینک</option>
   <option value="upload">آپلود</option>
@@ -100,10 +101,10 @@ img{
 <input id="musicUrl" placeholder="لینک آهنگ">
 <input type="file" id="musicFile" accept="audio/*" style="display:none">
 
-<button onclick="createLetter()">ساخت نامه 🚀</button>
+<button onclick="createLetter()">🚀 ساخت نامه</button>
+
 </div>
 
-<!-- CARD -->
 <div class="card" id="card">
 <img id="photo">
 <h2 id="title"></h2>
@@ -113,20 +114,23 @@ img{
 
 <div id="qr"></div>
 
-<a href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
-
-<br><br>
+<br>
 <button onclick="copyLink()">📋 کپی لینک</button>
+
+<a href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
 </div>
 
 <script>
 
-/* ================= SUPABASE ================= */
+/* ================= SUPABASE FIX ================= */
 const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
 const SUPABASE_KEY = "YOUR_ANON_KEY";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ================= UI MUSIC ================= */
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================= UI ================= */
+const statusBox = document.getElementById("status");
+
 const musicMode = document.getElementById("musicMode");
 const musicUrl = document.getElementById("musicUrl");
 const musicFile = document.getElementById("musicFile");
@@ -148,28 +152,14 @@ function toBase64(file){
   });
 }
 
-/* ================= AI TEXT ================= */
+/* ================= AI ================= */
 function generateAI(student,teacher){
-return `معلم عزیزم ${teacher}
+  return `معلم عزیزم ${teacher}
 
-سال تحصیلی به سرعت گذشت و من از ته قلبم از زحمات شما بی‌نهایت سپاسگزارم.
-
-شما به من فقط درس ندادید، بلکه انسان بودن یاد دادید.
+سال تحصیلی به سرعت گذشت...
 
 با احترام فراوان
-
 ${student}`;
-}
-
-/* ================= TYPE ================= */
-function type(el,text){
-  el.innerText="";
-  let i=0;
-  let t=setInterval(()=>{
-    el.innerText+=text[i];
-    i++;
-    if(i>=text.length) clearInterval(t);
-  },20);
 }
 
 /* ================= SMART MUSIC ================= */
@@ -177,49 +167,67 @@ function smartMusic(){
   return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 }
 
-/* ================= CREATE ================= */
-window.createLetter = async function(){
+/* ================= LOADING + ERROR ================= */
+function setStatus(text,color="#00ffcc"){
+  statusBox.innerText=text;
+  statusBox.style.color=color;
+}
 
-  const student = studentInput.value;
-  const teacher = teacherInput.value;
-  const subject = subjectInput.value;
+/* ================= CREATE LETTER ================= */
+async function createLetter(){
 
-  let msg = msgInput.value;
-  const mode = modeSelect.value;
+  try{
 
-  const file = fileInput.files[0];
-  const img = file ? await toBase64(file) : "";
+    setStatus("⏳ در حال ساخت نامه...");
 
-  if(!msg || mode==="ai"){
-    msg = generateAI(student,teacher);
+    const student = document.getElementById("student").value;
+    const teacher = document.getElementById("teacher").value;
+    const subject = document.getElementById("subject").value;
+
+    let msg = document.getElementById("msg").value;
+    const mode = document.getElementById("mode").value;
+
+    const file = document.getElementById("file").files[0];
+    const img = file ? await toBase64(file) : "";
+
+    if(!msg || mode==="ai"){
+      msg = generateAI(student,teacher);
+    }
+
+    let music = "";
+    if(musicMode.value==="url") music = musicUrl.value;
+
+    if(musicMode.value==="upload"){
+      const mf = musicFile.files[0];
+      if(mf) music = await toBase64(mf);
+    }
+
+    if(musicMode.value==="smart"){
+      music = smartMusic();
+    }
+
+    const {data,error} = await supabaseClient
+      .from("letters")
+      .insert([{student,teacher,msg,image:img,music}])
+      .select();
+
+    if(error){
+      setStatus("❌ خطا: " + error.message, "red");
+      return;
+    }
+
+    const id = data[0].id;
+    const link = location.origin + "?id=" + id;
+
+    setStatus("✅ نامه ساخته شد");
+
+    show(data[0],link);
+
+  }catch(err){
+    setStatus("❌ خطای ناشناخته", "red");
+    console.log(err);
   }
-
-  let music = "";
-  if(musicMode.value==="url") music = musicUrl.value;
-  if(musicMode.value==="upload"){
-    const mf = musicFile.files[0];
-    if(mf) music = await toBase64(mf);
-  }
-  if(musicMode.value==="smart") music = smartMusic();
-
-  const {data,error} = await supabase.from("letters").insert([{
-    student,
-    teacher,
-    msg,
-    image:img,
-    music
-  }]).select();
-
-  if(error){
-    alert(error.message);
-    return;
-  }
-
-  const id = data[0].id;
-  const link = location.origin + "?id=" + id;
-
-  show(data[0], link);
-};
+}
 
 /* ================= SHOW ================= */
 function show(data,link){
@@ -228,8 +236,7 @@ function show(data,link){
   card.style.display="block";
 
   title.innerText = data.teacher;
-  type(text,data.msg);
-
+  text.innerText = data.msg;
   photo.src = data.image;
   music.src = data.music;
 
@@ -253,21 +260,19 @@ const id = params.get("id");
 
 if(id){
   (async()=>{
-    const {data} = await supabase.from("letters").select().eq("id",id).single();
+    const {data} = await supabaseClient
+      .from("letters")
+      .select()
+      .eq("id",id)
+      .single();
+
     if(data){
       show(data,location.href);
     }
   })();
 }
 
-/* ================= FIX INPUTS ================= */
-const studentInput = document.getElementById("student");
-const teacherInput = document.getElementById("teacher");
-const subjectInput = document.getElementById("subject");
-const msgInput = document.getElementById("msg");
-const modeSelect = document.getElementById("mode");
-const fileInput = document.getElementById("file");
-
+/* ================= DOM ================= */
 const form = document.getElementById("form");
 const card = document.getElementById("card");
 const text = document.getElementById("text");
