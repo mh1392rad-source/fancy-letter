@@ -1,19 +1,17 @@
-
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro ✨</title>
+<title>Fancy Letter AI Pro</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
 :root{
   --bg1:#141e30;
   --bg2:#243b55;
-  --card:#ffffff;
   --primary:#00d4ff;
   --accent:#ff4fa3;
 }
@@ -22,65 +20,40 @@ body{
   margin:0;
   font-family:tahoma;
   background:linear-gradient(135deg,var(--bg1),var(--bg2));
-  min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
+  min-height:100vh;
 }
 
-.box{
-  background:rgba(0,0,0,0.85);
-  padding:22px;
-  border-radius:22px;
+.box,.card{
   width:92%;
-  max-width:430px;
+  max-width:450px;
+  background:rgba(0,0,0,0.85);
   color:white;
+  padding:20px;
+  border-radius:20px;
   text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,0.4);
-  animation:fadeIn 0.6s ease;
 }
 
 input,textarea,select,button{
   width:100%;
-  padding:11px;
-  margin:7px 0;
-  border-radius:10px;
+  padding:10px;
+  margin:6px 0;
   border:none;
-  outline:none;
+  border-radius:10px;
 }
 
 button{
-  padding:13px;
-  border:none;
-  border-radius:15px;
   background:linear-gradient(45deg,var(--primary),#00ffcc);
   font-weight:bold;
   cursor:pointer;
-  transition:0.3s;
-}
-
-button:hover{
-  transform:scale(1.05);
-  box-shadow:0 5px 15px rgba(0,212,255,0.4);
 }
 
 .card{
   display:none;
-  background:var(--card);
-  width:92%;
-  max-width:520px;
-  padding:28px;
-  border-radius:22px;
-  text-align:center;
-  transform:translateY(60px) scale(0.95);
-  opacity:0;
-  transition:all 0.7s ease;
-  box-shadow:0 15px 40px rgba(0,0,0,0.3);
-}
-
-.card.show{
-  transform:translateY(0) scale(1);
-  opacity:1;
+  background:white;
+  color:black;
 }
 
 img{
@@ -88,74 +61,49 @@ img{
   height:120px;
   border-radius:50%;
   object-fit:cover;
-  border:3px solid var(--accent);
-  transition:0.4s;
-}
-
-img:hover{
-  transform:scale(1.1) rotate(-4deg);
 }
 
 #text{
-  margin-top:15px;
-  font-size:15px;
-  line-height:1.8;
   white-space:pre-wrap;
-}
-
-#qr{
-  margin-top:15px;
-}
-
-.eitaa{
-  display:block;
-  margin-top:16px;
-  padding:12px;
-  background:linear-gradient(45deg,var(--accent),#ffb347);
-  color:white;
-  border-radius:12px;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px);}
-  to{opacity:1;transform:translateY(0);}
+  line-height:2;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- FORM -->
 <div class="box" id="form">
 <h2>💌 Fancy Letter AI Pro</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<input id="subject" placeholder="درس معلم">
+<input id="subject" placeholder="درس">
 
-<textarea id="msg" placeholder="متن دستی"></textarea>
+<textarea id="msg" placeholder="متن دستی (اختیاری)"></textarea>
 
 <select id="mode">
   <option value="manual">✍️ دستی</option>
   <option value="ai">🤖 هوش مصنوعی</option>
 </select>
 
+<input type="file" id="file" accept="image/*">
+
 <h3>🎵 موسیقی</h3>
 <select id="musicMode">
-  <option value="url">🔗 لینک</option>
-  <option value="upload">📂 آپلود</option>
-  <option value="smart">🤖 هوشمند</option>
+  <option value="url">لینک</option>
+  <option value="upload">آپلود</option>
+  <option value="smart">هوشمند</option>
 </select>
 
 <input id="musicUrl" placeholder="لینک آهنگ">
 <input type="file" id="musicFile" accept="audio/*" style="display:none">
 
-<input type="file" id="file" accept="image/*">
-
 <button onclick="createLetter()">ساخت نامه 🚀</button>
 </div>
 
+<!-- CARD -->
 <div class="card" id="card">
 <img id="photo">
 <h2 id="title"></h2>
@@ -165,123 +113,127 @@ img:hover{
 
 <div id="qr"></div>
 
-<a class="eitaa" href="https://eitaa.com/irandigital_python" target="_blank">
-📢 کانال ایتا
-</a>
+<a href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
 
-<div id="actions"></div>
+<br><br>
+<button onclick="copyLink()">📋 کپی لینک</button>
 </div>
 
 <script>
 
+/* ================= SUPABASE ================= */
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_KEY = "YOUR_ANON_KEY";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================= UI MUSIC ================= */
 const musicMode = document.getElementById("musicMode");
 const musicUrl = document.getElementById("musicUrl");
 const musicFile = document.getElementById("musicFile");
 
-musicMode.onchange = () => {
-  musicUrl.style.display = "none";
-  musicFile.style.display = "none";
+musicMode.onchange = ()=>{
+  musicUrl.style.display="none";
+  musicFile.style.display="none";
 
   if(musicMode.value==="url") musicUrl.style.display="block";
   if(musicMode.value==="upload") musicFile.style.display="block";
 };
 
+/* ================= BASE64 ================= */
 function toBase64(file){
   return new Promise(r=>{
-    const f=new FileReader();
-    f.onload=()=>r(f.result);
-    f.readAsDataURL(file);
+    const reader=new FileReader();
+    reader.onload=()=>r(reader.result);
+    reader.readAsDataURL(file);
   });
 }
 
-async function generateText(student,teacher,subject){
-  return `معلم عزیزم ${teacher}
+/* ================= AI TEXT ================= */
+function generateAI(student,teacher){
+return `معلم عزیزم ${teacher}
 
 سال تحصیلی به سرعت گذشت و من از ته قلبم از زحمات شما بی‌نهایت سپاسگزارم.
 
-هر لحظه‌ای که در کلاس شما بودم، برای من یک درس بزرگ و یک خاطره قشنگ بود.
+شما به من فقط درس ندادید، بلکه انسان بودن یاد دادید.
 
-شما نه تنها به من درس خواندن یاد دادید، بلکه به من یاد دادید چطور آدم بهتری باشم.
-
-دلم برای کلاس‌های پرانرژی و مهربانی‌تان تنگ خواهد شد.
-
-امیدوارم همیشه سلامت و شاد باشید و بدانید که من هیچ‌وقت زحمات شما را فراموش نمی‌کنم.
-
-با احترام و عشق فراوان
+با احترام فراوان
 
 ${student}`;
 }
 
-function smartMusic(subject){
-  const s=subject.toLowerCase();
-  if(s.includes("ریاضی")) return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-  if(s.includes("علوم")) return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3";
-  return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3";
-}
-
-function typeText(el,text){
+/* ================= TYPE ================= */
+function type(el,text){
   el.innerText="";
   let i=0;
   let t=setInterval(()=>{
     el.innerText+=text[i];
     i++;
     if(i>=text.length) clearInterval(t);
-  },25);
+  },20);
 }
 
-/* ===== READ URL PARAMS ===== */
-const params = new URLSearchParams(window.location.search);
-const urlTeacher = params.get("teacher");
-const urlStudent = params.get("student");
-
-if(urlTeacher && urlStudent){
-  showLetter(urlStudent,urlTeacher);
+/* ================= SMART MUSIC ================= */
+function smartMusic(){
+  return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 }
 
-/* ===== CREATE LETTER ===== */
-async function createLetter(){
-  const file=document.getElementById("file").files[0];
-  const img=file?await toBase64(file):"";
+/* ================= CREATE ================= */
+window.createLetter = async function(){
 
-  let mode=document.getElementById("mode").value;
-  let textData=mode==="ai"?await generateText(student.value,teacher.value,subject.value):msg.value;
+  const student = studentInput.value;
+  const teacher = teacherInput.value;
+  const subject = subjectInput.value;
 
-  let musicSrc="";
-  if(musicMode.value==="url") musicSrc=musicUrl.value;
-  if(musicMode.value==="upload"){
-    const f=musicFile.files[0];
-    if(f) musicSrc=URL.createObjectURL(f);
+  let msg = msgInput.value;
+  const mode = modeSelect.value;
+
+  const file = fileInput.files[0];
+  const img = file ? await toBase64(file) : "";
+
+  if(!msg || mode==="ai"){
+    msg = generateAI(student,teacher);
   }
-  if(musicMode.value==="smart") musicSrc=smartMusic(subject.value);
 
-  const baseUrl=location.href.split("?")[0];
-  const link=`${baseUrl}?teacher=${encodeURIComponent(teacher.value)}&student=${encodeURIComponent(student.value)}`;
+  let music = "";
+  if(musicMode.value==="url") music = musicUrl.value;
+  if(musicMode.value==="upload"){
+    const mf = musicFile.files[0];
+    if(mf) music = await toBase64(mf);
+  }
+  if(musicMode.value==="smart") music = smartMusic();
 
-  showLetter(student.value,teacher.value,textData,musicSrc,link);
-}
+  const {data,error} = await supabase.from("letters").insert([{
+    student,
+    teacher,
+    msg,
+    image:img,
+    music
+  }]).select();
 
-/* ===== SHOW LETTER ===== */
-function showLetter(studentName,teacherName,textData="",musicSrc="",link=""){
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  const id = data[0].id;
+  const link = location.origin + "?id=" + id;
+
+  show(data[0], link);
+};
+
+/* ================= SHOW ================= */
+function show(data,link){
+
   form.style.display="none";
   card.style.display="block";
-  setTimeout(()=>card.classList.add("show"),100);
 
-  title.innerText = teacherName;
+  title.innerText = data.teacher;
+  type(text,data.msg);
 
-  photo.src="";
+  photo.src = data.image;
+  music.src = data.music;
 
-  typeText(document.getElementById("text"), textData || generateText(studentName,teacherName));
-
-  music.src = musicSrc;
-
-  if(!link) link=location.href;
   window.generatedLink = link;
-
-  document.getElementById("actions").innerHTML=`
-    <br>
-    <button onclick="copy('${link}')">📋 کپی لینک</button>
-    <button onclick="share('${link}')">📤 اشتراک</button>
-  `;
 
   QRCode.toCanvas(document.createElement("canvas"),link,(e,c)=>{
     qr.innerHTML="";
@@ -289,9 +241,40 @@ function showLetter(studentName,teacherName,textData="",musicSrc="",link=""){
   });
 }
 
-/* ===== SHARE ===== */
-window.copy=u=>{navigator.clipboard.writeText(u);alert("لینک کپی شد");}
-window.share=u=>navigator.share?navigator.share({url:u}):copy(u);
+/* ================= COPY ================= */
+function copyLink(){
+  navigator.clipboard.writeText(window.generatedLink);
+  alert("کپی شد");
+}
+
+/* ================= LOAD ================= */
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+if(id){
+  (async()=>{
+    const {data} = await supabase.from("letters").select().eq("id",id).single();
+    if(data){
+      show(data,location.href);
+    }
+  })();
+}
+
+/* ================= FIX INPUTS ================= */
+const studentInput = document.getElementById("student");
+const teacherInput = document.getElementById("teacher");
+const subjectInput = document.getElementById("subject");
+const msgInput = document.getElementById("msg");
+const modeSelect = document.getElementById("mode");
+const fileInput = document.getElementById("file");
+
+const form = document.getElementById("form");
+const card = document.getElementById("card");
+const text = document.getElementById("text");
+const title = document.getElementById("title");
+const photo = document.getElementById("photo");
+const music = document.getElementById("music");
+const qr = document.getElementById("qr");
 
 </script>
 
