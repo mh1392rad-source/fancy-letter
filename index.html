@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter PRO</title>
+<title>Fancy Letter 🌍</title>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
 body{
   margin:0;
   font-family:tahoma;
-  background:linear-gradient(135deg,#6a11cb,#2575fc,#00e5ff);
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   min-height:100vh;
   display:flex;
   justify-content:center;
@@ -17,7 +19,7 @@ body{
 }
 
 .box{
-  background:rgba(0,0,0,0.75);
+  background:rgba(0,0,0,0.8);
   padding:20px;
   border-radius:25px;
   width:90%;
@@ -67,6 +69,10 @@ audio{
   width:100%;
   margin-top:10px;
 }
+
+#qr{
+  margin-top:15px;
+}
 </style>
 </head>
 
@@ -74,7 +80,7 @@ audio{
 
 <!-- FORM -->
 <div class="box" id="form">
-<h2>💌 ساخت نامه حرفه‌ای</h2>
+<h2>💌 Fancy Letter</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
@@ -82,7 +88,7 @@ audio{
 <input type="file" id="file">
 <input id="musicUrl" placeholder="لینک آهنگ">
 
-<button onclick="saveLetter()">ساخت نامه</button>
+<button onclick="saveLetter()">ساخت نامه 🚀</button>
 </div>
 
 <!-- CARD -->
@@ -92,6 +98,8 @@ audio{
 <p id="text"></p>
 
 <audio id="music" controls loop></audio>
+
+<div id="qr"></div>
 
 <p id="link"></p>
 </div>
@@ -113,7 +121,7 @@ function toBase64(file){
   });
 }
 
-/* ===== SAVE TO SUPABASE ===== */
+/* ===== SAVE ===== */
 window.saveLetter = async function(){
 
   let id = Math.random().toString(36).substring(2,10);
@@ -121,15 +129,13 @@ window.saveLetter = async function(){
   let file = document.getElementById("file").files[0];
   let img = file ? await toBase64(file) : "";
 
-  let music = document.getElementById("musicUrl").value;
-
   const data = {
     id,
     student: student.value,
     teacher: teacher.value,
     msg: msg.value,
     img,
-    music
+    music: musicUrl.value
   };
 
   const { error } = await supabase
@@ -137,15 +143,15 @@ window.saveLetter = async function(){
     .insert([data]);
 
   if(error){
-    alert("خطا در ذخیره ❌");
+    alert("خطا ❌");
     console.log(error);
     return;
   }
 
-  show(data, id);
+  show(data,id);
 };
 
-/* ===== SHOW LETTER ===== */
+/* ===== SHOW ===== */
 function show(d,id){
 
   form.style.display="none";
@@ -155,16 +161,23 @@ function show(d,id){
   text.innerText=d.msg;
 
   photo.src=d.img || "";
-
-  music.src = d.music || "";
+  music.src=d.music || "";
 
   let url = window.location.origin + window.location.pathname + "?id=" + id;
 
+  /* LINK */
   link.innerHTML = `
     🔗 لینک نامه:
     <br>
     <button onclick="copy('${url}')">📋 کپی لینک</button>
+    <button onclick="share('${url}')">📤 اشتراک</button>
   `;
+
+  /* QR */
+  QRCode.toCanvas(document.createElement("canvas"), url, function (err, canvas) {
+    document.getElementById("qr").innerHTML = "";
+    document.getElementById("qr").appendChild(canvas);
+  });
 }
 
 /* ===== COPY ===== */
@@ -173,7 +186,16 @@ window.copy = function(url){
   alert("لینک کپی شد 📋");
 };
 
-/* ===== LOAD FROM LINK ===== */
+/* ===== SHARE ===== */
+window.share = function(url){
+  if(navigator.share){
+    navigator.share({ title:"Fancy Letter", url });
+  }else{
+    copy(url);
+  }
+};
+
+/* ===== LOAD ===== */
 window.onload = async function(){
 
   const id = new URLSearchParams(location.search).get("id");
@@ -185,7 +207,7 @@ window.onload = async function(){
       .eq("id", id)
       .single();
 
-    if(data) show(data, id);
+    if(data) show(data,id);
   }
 };
 </script>
