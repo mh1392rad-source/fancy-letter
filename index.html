@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter PRO</title>
+<title>Fancy Letter FINAL</title>
 
 <style>
 body{
@@ -113,11 +113,13 @@ const supabase = createClient(
 "sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
 );
 
-/* ===== LOGIN MAGIC LINK ===== */
+/* ===== LOGIN ===== */
 window.login = async function(){
   let email = document.getElementById("email").value;
 
-  let { error } = await supabase.auth.signInWithOtp({ email });
+  let { error } = await supabase.auth.signInWithOtp({
+    email
+  });
 
   if(error){
     alert("خطا در ارسال ایمیل ❌");
@@ -126,7 +128,7 @@ window.login = async function(){
   }
 };
 
-/* ===== UI UPDATE ===== */
+/* ===== UI ===== */
 function updateUI(session){
   if(session){
     loginBox.style.display="none";
@@ -137,13 +139,17 @@ function updateUI(session){
   }
 }
 
-/* ===== SESSION CHECK ===== */
-supabase.auth.getSession().then(({ data })=>{
+/* ===== INIT SESSION ===== */
+window.addEventListener("load", async () => {
+
+  // 🔥 مهم: خواندن session بعد از کلیک لینک
+  const { data } = await supabase.auth.getSession();
+
   updateUI(data.session);
 });
 
-/* ===== LISTENER (AUTO LOGIN WITHOUT REFRESH) ===== */
-supabase.auth.onAuthStateChange((event, session)=>{
+/* ===== LISTENER (REAL TIME LOGIN FIX) ===== */
+supabase.auth.onAuthStateChange((event, session) => {
   updateUI(session);
 });
 
@@ -153,7 +159,7 @@ window.logout = async function(){
   location.reload();
 };
 
-/* ===== IMAGE ===== */
+/* ===== BASE64 IMAGE ===== */
 function toBase64(file){
   return new Promise(res=>{
     let r=new FileReader();
@@ -233,7 +239,7 @@ window.copyLink = function(url){
   alert("لینک کپی شد 📋");
 };
 
-/* ===== LOAD BY LINK ===== */
+/* ===== LOAD LETTER BY LINK ===== */
 window.onload = async function(){
 
   let id = new URLSearchParams(location.search).get("id");
