@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter 🌍 AI EDITION</title>
+<title>Fancy Letter AI ✨</title>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
@@ -18,8 +18,9 @@ body{
   align-items:center;
 }
 
+/* FORM */
 .box{
-  background:rgba(0,0,0,0.8);
+  background:rgba(0,0,0,0.85);
   padding:20px;
   border-radius:20px;
   width:90%;
@@ -45,8 +46,14 @@ button{
   background:linear-gradient(45deg,#00ffcc,#00d4ff);
   font-weight:bold;
   cursor:pointer;
+  transition:0.3s;
 }
 
+button:hover{
+  transform:scale(1.05);
+}
+
+/* CARD */
 .card{
   display:none;
   background:white;
@@ -55,6 +62,14 @@ button{
   padding:25px;
   border-radius:20px;
   text-align:center;
+  transform:translateY(60px);
+  opacity:0;
+  transition:all 0.8s ease;
+}
+
+.card.show{
+  transform:translateY(0);
+  opacity:1;
 }
 
 img{
@@ -63,6 +78,11 @@ img{
   border-radius:50%;
   object-fit:cover;
   border:3px solid #ff4fa3;
+  transition:0.5s;
+}
+
+img:hover{
+  transform:scale(1.1) rotate(-3deg);
 }
 
 audio{
@@ -72,6 +92,31 @@ audio{
 
 #qr{
   margin-top:15px;
+}
+
+/* typing */
+#text.typing{
+  overflow:hidden;
+  white-space:pre-wrap;
+  border-right:2px solid black;
+  animation:typing 2s steps(40,end);
+}
+
+@keyframes typing{
+  from{width:0}
+  to{width:100%}
+}
+
+/* Eitaa button */
+.eitaa{
+  display:block;
+  margin-top:15px;
+  padding:12px;
+  background:linear-gradient(45deg,#ff4fa3,#ffb347);
+  color:white;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -84,13 +129,13 @@ audio{
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<input id="subject" placeholder="درس معلم (مثلاً ریاضی)">
+<input id="subject" placeholder="درس معلم">
 
-<textarea id="msg" placeholder="اگر دستی می‌نویسی اینجا بنویس"></textarea>
+<textarea id="msg" placeholder="متن دستی (اگر AI نیست)"></textarea>
 
 <select id="mode">
-  <option value="manual">✍️ نوشتن دستی</option>
-  <option value="ai">🤖 ساخت با هوش مصنوعی</option>
+  <option value="manual">✍️ متن دستی</option>
+  <option value="ai">🤖 متن با هوش مصنوعی</option>
 </select>
 
 <input type="file" id="file">
@@ -109,66 +154,42 @@ audio{
 
 <div id="qr"></div>
 
-<div style="margin-top:15px;">
-  <a href="https://eitaa.com/irandigital_python" target="_blank"
-     style="
-        display:block;
-        padding:12px;
-        background:linear-gradient(45deg,#ff4fa3,#ffb347);
-        color:white;
-        border-radius:12px;
-        text-decoration:none;
-        font-weight:bold;
-     ">
-    📢 ورود به کانال ایتا
-  </a>
-</div>
+<a class="eitaa" href="https://eitaa.com/irandigital_python" target="_blank">
+📢 ورود به کانال ایتا
+</a>
 
 <p id="link"></p>
 </div>
 
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-const supabase = createClient(
-"https://ycbnblhxzzcslturozrf.supabase.co",
-"sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
-);
-
-/* ===== AI TEXT (demo version) ===== */
+<script>
+/* ===== AI TEXT (demo) ===== */
 async function generateAI(student, teacher, subject){
-  // 🔥 نسخه ساده (بدون API Key)
   return `دانش‌آموز عزیز ${student}
 
 با احترام به معلم گرامی ${teacher}
 
-از تلاش‌های شما در درس ${subject} سپاسگزاریم.
-امیدواریم همیشه موفق و سربلند باشید 🌟
-
-با آرزوی بهترین‌ها 💙`;
+از زحمات شما در درس ${subject} سپاسگزاریم.
+موفق و پیروز باشید 🌟`;
 }
 
 /* ===== IMAGE ===== */
 function toBase64(file){
   return new Promise(res=>{
-    let r=new FileReader();
+    const r=new FileReader();
     r.onload=()=>res(r.result);
     r.readAsDataURL(file);
   });
 }
 
-/* ===== SAVE ===== */
+/* ===== SAVE & SHOW ===== */
 window.saveLetter = async function(){
-
-  let id = Math.random().toString(36).substring(2,10);
 
   let file = document.getElementById("file").files[0];
   let img = file ? await toBase64(file) : "";
 
   let mode = document.getElementById("mode").value;
 
-  let msgText = "";
-
+  let msgText;
   if(mode === "ai"){
     msgText = await generateAI(
       student.value,
@@ -180,7 +201,6 @@ window.saveLetter = async function(){
   }
 
   const data = {
-    id,
     student: student.value,
     teacher: teacher.value,
     subject: subject.value,
@@ -189,74 +209,51 @@ window.saveLetter = async function(){
     music: musicUrl.value
   };
 
-  const { error } = await supabase
-    .from("letters")
-    .insert([data]);
-
-  if(error){
-    alert("❌ خطا در ذخیره");
-    console.log(error);
-    return;
-  }
-
-  show(data,id);
+  show(data);
 };
 
 /* ===== SHOW ===== */
-function show(d,id){
+function show(d){
 
   form.style.display="none";
   card.style.display="block";
 
+  setTimeout(()=>card.classList.add("show"),100);
+
   title.innerText="معلم گرامی " + d.teacher;
+
   text.innerText=d.msg;
+  text.classList.add("typing");
 
   photo.src=d.img || "";
   music.src=d.music || "";
 
-  let url = window.location.origin + window.location.pathname + "?id=" + id;
+  let url = window.location.href.split("?")[0];
 
   link.innerHTML = `
     🔗 لینک نامه:
     <br><br>
-    <button onclick="copy('${url}')">📋 کپی لینک</button>
+    <button onclick="copy('${url}')">📋 کپی</button>
     <button onclick="share('${url}')">📤 اشتراک</button>
   `;
 
   QRCode.toCanvas(document.createElement("canvas"), url, function (err, canvas) {
-    document.getElementById("qr").innerHTML = "";
-    document.getElementById("qr").appendChild(canvas);
+    qr.innerHTML="";
+    qr.appendChild(canvas);
   });
 }
 
-/* ===== COPY ===== */
+/* ===== COPY & SHARE ===== */
 window.copy = function(url){
   navigator.clipboard.writeText(url);
-  alert("لینک کپی شد 📋");
+  alert("کپی شد 📋");
 };
 
-/* ===== SHARE ===== */
 window.share = function(url){
   if(navigator.share){
-    navigator.share({ title:"Fancy Letter", url });
+    navigator.share({title:"Fancy Letter", url});
   }else{
     copy(url);
-  }
-};
-
-/* ===== LOAD ===== */
-window.onload = async function(){
-
-  const id = new URLSearchParams(location.search).get("id");
-
-  if(id){
-    const { data } = await supabase
-      .from("letters")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if(data) show(data,id);
   }
 };
 </script>
