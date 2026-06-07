@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter Insta</title>
+<title>Fancy Letter 🌍 FINAL</title>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
@@ -11,171 +11,205 @@
 body{
   margin:0;
   font-family:tahoma;
-  background:#0f0f0f;
-  color:white;
-}
-
-/* TOP BAR */
-.topbar{
-  background:#111;
-  padding:12px;
-  text-align:center;
-  font-weight:bold;
-  font-size:18px;
-  border-bottom:1px solid #222;
-}
-
-/* POST */
-.post{
-  background:#1a1a1a;
-  margin:15px;
-  border-radius:15px;
-  padding:15px;
-  box-shadow:0 0 10px rgba(0,0,0,0.5);
-}
-
-.header{
+  background:linear-gradient(135deg,#141e30,#243b55);
+  min-height:100vh;
   display:flex;
+  justify-content:center;
   align-items:center;
-  gap:10px;
 }
 
-.avatar{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:linear-gradient(45deg,#ff4fa3,#00d4ff);
-}
-
-.name{
-  font-weight:bold;
-}
-
-img{
-  width:100%;
-  border-radius:12px;
-  margin-top:10px;
-}
-
-.actions{
-  display:flex;
-  justify-content:space-between;
-  margin-top:10px;
-}
-
-button{
-  background:none;
-  border:none;
+.box{
+  background:rgba(0,0,0,0.8);
+  padding:20px;
+  border-radius:20px;
+  width:90%;
+  max-width:420px;
   color:white;
-  font-size:16px;
-  cursor:pointer;
+  text-align:center;
 }
 
-.like{
-  color:#ff4fa3;
-}
-
-.comment-box{
-  margin-top:10px;
-}
-
-input{
+input,textarea{
   width:100%;
-  padding:8px;
+  padding:10px;
+  margin:6px 0;
   border-radius:10px;
   border:none;
 }
 
-.small{
-  font-size:12px;
-  color:#aaa;
-  margin-top:5px;
+button{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  border:none;
+  border-radius:15px;
+  background:linear-gradient(45deg,#00ffcc,#00d4ff);
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.card{
+  display:none;
+  background:white;
+  width:90%;
+  max-width:500px;
+  padding:25px;
+  border-radius:20px;
+  text-align:center;
+}
+
+img{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #ff4fa3;
+}
+
+audio{
+  width:100%;
+  margin-top:10px;
 }
 
 #qr{
-  margin-top:10px;
+  margin-top:15px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">📱 Fancy Letter Instagram</div>
+<!-- FORM -->
+<div class="box" id="form">
+<h2>💌 Fancy Letter</h2>
 
-<!-- POST -->
-<div class="post" id="post">
+<input id="student" placeholder="نام دانش‌آموز">
+<input id="teacher" placeholder="نام معلم">
+<textarea id="msg" placeholder="متن نامه"></textarea>
+<input type="file" id="file">
+<input id="musicUrl" placeholder="لینک آهنگ">
 
-  <div class="header">
-    <div class="avatar"></div>
-    <div class="name" id="title">معلم گرامی</div>
-  </div>
-
-  <p id="text"></p>
-
-  <img id="photo">
-
-  <audio id="music" controls style="width:100%;margin-top:10px;"></audio>
-
-  <div class="actions">
-    <button class="like" onclick="like()">❤️ <span id="likes">0</span></button>
-    <button onclick="share()">📤 Share</button>
-    <button onclick="copy()">🔗 Link</button>
-  </div>
-
-  <div class="comment-box">
-    <input id="comment" placeholder="نظر بنویس...">
-  </div>
-
-  <div id="qr"></div>
-
-  <div class="small" id="link"></div>
-
+<button onclick="saveLetter()">ساخت نامه 🚀</button>
 </div>
 
-<script>
-let likeCount = 0;
+<!-- CARD -->
+<div class="card" id="card">
+<img id="photo">
+<h2 id="title"></h2>
+<p id="text"></p>
 
-/* ===== LOAD ===== */
-window.onload = function(){
+<audio id="music" controls loop></audio>
 
-  let id = new URLSearchParams(location.search).get("id");
+<div id="qr"></div>
 
-  let data = localStorage.getItem("letter_" + id);
+<p id="link"></p>
+</div>
 
-  if(data){
-    let d = JSON.parse(data);
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    title.innerText = "📩 " + d.teacher;
-    text.innerText = d.msg;
-    photo.src = d.img || "";
-    music.src = d.music || "";
+/* 🔥 SUPABASE */
+const supabase = createClient(
+"https://ycbnblhxzzcslturozrf.supabase.co",
+"sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
+);
 
-    let url = window.location.href;
-
-    link.innerText = url;
-
-    QRCode.toCanvas(document.createElement("canvas"), url, function (err, canvas) {
-      qr.appendChild(canvas);
-    });
-  }
-};
-
-/* ===== LIKE ===== */
-function like(){
-  likeCount++;
-  document.getElementById("likes").innerText = likeCount;
+/* ===== IMAGE ===== */
+function toBase64(file){
+  return new Promise(res=>{
+    let r=new FileReader();
+    r.onload=()=>res(r.result);
+    r.readAsDataURL(file);
+  });
 }
 
-/* ===== SHARE ===== */
-function share(){
-  navigator.share?.({ url: location.href }) || copy();
+/* ===== SAVE LETTER ===== */
+window.saveLetter = async function(){
+
+  let id = Math.random().toString(36).substring(2,10);
+
+  let file = document.getElementById("file").files[0];
+  let img = file ? await toBase64(file) : "";
+
+  const data = {
+    id,
+    student: student.value,
+    teacher: teacher.value,
+    msg: msg.value,
+    img,
+    music: musicUrl.value
+  };
+
+  const { error } = await supabase
+    .from("letters")
+    .insert([data]);
+
+  if(error){
+    alert("❌ خطا در ذخیره");
+    console.log(error);
+    return;
+  }
+
+  show(data,id);
+};
+
+/* ===== SHOW LETTER ===== */
+function show(d,id){
+
+  form.style.display="none";
+  card.style.display="block";
+
+  title.innerText="معلم گرامی " + d.teacher;
+  text.innerText=d.msg;
+
+  photo.src=d.img || "";
+  music.src=d.music || "";
+
+  let url = window.location.origin + window.location.pathname + "?id=" + id;
+
+  link.innerHTML = `
+    🔗 لینک نامه:
+    <br><br>
+    <button onclick="copy('${url}')">📋 کپی لینک</button>
+    <button onclick="share('${url}')">📤 اشتراک</button>
+  `;
+
+  /* QR CODE */
+  QRCode.toCanvas(document.createElement("canvas"), url, function (err, canvas) {
+    document.getElementById("qr").innerHTML = "";
+    document.getElementById("qr").appendChild(canvas);
+  });
 }
 
 /* ===== COPY ===== */
-function copy(){
-  navigator.clipboard.writeText(location.href);
+window.copy = function(url){
+  navigator.clipboard.writeText(url);
   alert("لینک کپی شد 📋");
-}
+};
+
+/* ===== SHARE ===== */
+window.share = function(url){
+  if(navigator.share){
+    navigator.share({ title:"Fancy Letter", url });
+  }else{
+    copy(url);
+  }
+};
+
+/* ===== LOAD LETTER ===== */
+window.onload = async function(){
+
+  const id = new URLSearchParams(location.search).get("id");
+
+  if(id){
+    const { data } = await supabase
+      .from("letters")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if(data) show(data,id);
+  }
+};
 </script>
 
 </body>
