@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter NO LOGIN</title>
+<title>Fancy Letter PRO</title>
 
 <style>
 body{
   margin:0;
   font-family:tahoma;
-  background:linear-gradient(135deg,#7b2ff7,#f107a3,#00e5ff);
+  background:linear-gradient(135deg,#6a11cb,#2575fc,#00e5ff);
   min-height:100vh;
   display:flex;
   justify-content:center;
@@ -74,13 +74,13 @@ audio{
 
 <!-- FORM -->
 <div class="box" id="form">
-<h2>💌 ساخت نامه</h2>
+<h2>💌 ساخت نامه حرفه‌ای</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
 <textarea id="msg" placeholder="متن نامه"></textarea>
 <input type="file" id="file">
-<input id="musicUrl" placeholder="لینک آهنگ (mp3)">
+<input id="musicUrl" placeholder="لینک آهنگ">
 
 <button onclick="saveLetter()">ساخت نامه</button>
 </div>
@@ -96,8 +96,15 @@ audio{
 <p id="link"></p>
 </div>
 
-<script>
-/* ===== IMAGE TO BASE64 ===== */
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+"https://ycbnblhxzzcslturozrf.supabase.co",
+"sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
+);
+
+/* ===== IMAGE ===== */
 function toBase64(file){
   return new Promise(res=>{
     let r=new FileReader();
@@ -106,7 +113,7 @@ function toBase64(file){
   });
 }
 
-/* ===== SAVE LETTER (LOCAL ONLY) ===== */
+/* ===== SAVE TO SUPABASE ===== */
 window.saveLetter = async function(){
 
   let id = Math.random().toString(36).substring(2,10);
@@ -114,19 +121,28 @@ window.saveLetter = async function(){
   let file = document.getElementById("file").files[0];
   let img = file ? await toBase64(file) : "";
 
-  let data = {
+  let music = document.getElementById("musicUrl").value;
+
+  const data = {
     id,
     student: student.value,
     teacher: teacher.value,
     msg: msg.value,
     img,
-    music: musicUrl.value
+    music
   };
 
-  // ذخیره در localStorage (بدون Supabase)
-  localStorage.setItem("letter_" + id, JSON.stringify(data));
+  const { error } = await supabase
+    .from("letters")
+    .insert([data]);
 
-  show(data,id);
+  if(error){
+    alert("خطا در ذخیره ❌");
+    console.log(error);
+    return;
+  }
+
+  show(data, id);
 };
 
 /* ===== SHOW LETTER ===== */
@@ -140,36 +156,36 @@ function show(d,id){
 
   photo.src=d.img || "";
 
-  if(d.music){
-    music.src = d.music;
-  }
+  music.src = d.music || "";
 
-  let url = window.location.href.split('?')[0] + "?id=" + id;
+  let url = window.location.origin + window.location.pathname + "?id=" + id;
 
   link.innerHTML = `
     🔗 لینک نامه:
     <br>
-    <button onclick="copyLink('${url}')">📋 کپی لینک</button>
+    <button onclick="copy('${url}')">📋 کپی لینک</button>
   `;
 }
 
 /* ===== COPY ===== */
-function copyLink(url){
+window.copy = function(url){
   navigator.clipboard.writeText(url);
   alert("لینک کپی شد 📋");
-}
+};
 
-/* ===== LOAD LETTER ===== */
-window.onload = function(){
+/* ===== LOAD FROM LINK ===== */
+window.onload = async function(){
 
-  let id = new URLSearchParams(location.search).get("id");
+  const id = new URLSearchParams(location.search).get("id");
 
   if(id){
-    let data = localStorage.getItem("letter_" + id);
+    const { data } = await supabase
+      .from("letters")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-    if(data){
-      show(JSON.parse(data), id);
-    }
+    if(data) show(data, id);
   }
 };
 </script>
