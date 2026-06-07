@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro (Fixed)</title>
+<title>Fancy Letter AI Pro</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -72,144 +72,143 @@ img{
 <body>
 
 <div class="box" id="form">
+  <h2>💌 Fancy Letter AI Pro</h2>
 
-<h2>💌 Fancy Letter AI Pro</h2>
+  <div id="status"></div>
 
-<div id="status"></div>
+  <input id="student" placeholder="نام دانش‌آموز">
+  <input id="teacher" placeholder="نام معلم">
+  <input id="subject" placeholder="درس">
 
-<input id="student" placeholder="نام دانش‌آموز">
-<input id="teacher" placeholder="نام معلم">
-<input id="subject" placeholder="درس">
+  <textarea id="msg" placeholder="متن (اختیاری)"></textarea>
 
-<textarea id="msg" placeholder="متن (اختیاری)"></textarea>
+  <select id="mode">
+    <option value="manual">دستی</option>
+    <option value="ai">هوش مصنوعی</option>
+  </select>
 
-<select id="mode">
-  <option value="manual">دستی</option>
-  <option value="ai">هوش مصنوعی</option>
-</select>
+  <input type="file" id="file" accept="image/*">
 
-<input type="file" id="file" accept="image/*">
+  <h3>🎵 موسیقی</h3>
 
-<h3>🎵 موسیقی</h3>
+  <select id="musicMode">
+    <option value="url">لینک</option>
+    <option value="upload">آپلود</option>
+    <option value="smart">هوشمند</option>
+  </select>
 
-<select id="musicMode">
-  <option value="url">لینک</option>
-  <option value="upload">آپلود</option>
-  <option value="smart">هوشمند</option>
-</select>
+  <input id="musicUrl" placeholder="لینک آهنگ">
+  <input type="file" id="musicFile" accept="audio/*" style="display:none">
 
-<input id="musicUrl" placeholder="لینک آهنگ">
-<input type="file" id="musicFile" accept="audio/*" style="display:none">
-
-<button onclick="createLetter()">🚀 ساخت نامه</button>
-
+  <button onclick="createLetter()">🚀 ساخت نامه</button>
 </div>
 
 <div class="card" id="card">
-<img id="photo">
-<h2 id="title"></h2>
-<p id="text"></p>
+  <img id="photo">
+  <h2 id="title"></h2>
+  <p id="text"></p>
 
-<audio id="music" controls loop></audio>
+  <audio id="music" controls loop></audio>
 
-<div id="qr"></div>
+  <div id="qr"></div>
 
-<br>
-<button onclick="copyLink()">📋 کپی لینک</button>
-
-<a href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
+  <br>
+  <button onclick="copyLink()">📋 کپی لینک</button>
 </div>
 
 <script>
 
-/* ================= SUPABASE ================= */
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"; // جایگزین با پروژه خودت
-const SUPABASE_KEY = "YOUR_ANON_KEY"; // جایگزین با کلید anon
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* ================= UI ================= */
+/* ================= DOM ================= */
+const form = document.getElementById("form");
+const card = document.getElementById("card");
+const text = document.getElementById("text");
+const title = document.getElementById("title");
+const photo = document.getElementById("photo");
+const music = document.getElementById("music");
+const qr = document.getElementById("qr");
 const statusBox = document.getElementById("status");
 
 const musicMode = document.getElementById("musicMode");
 const musicUrl = document.getElementById("musicUrl");
 const musicFile = document.getElementById("musicFile");
 
-musicMode.onchange = ()=>{
-  musicUrl.style.display="none";
-  musicFile.style.display="none";
+/* ================= SUPABASE ================= */
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  if(musicMode.value==="url") musicUrl.style.display="block";
-  if(musicMode.value==="upload") musicFile.style.display="block";
+/* ================= UI ================= */
+musicMode.onchange = () => {
+  musicUrl.style.display = "none";
+  musicFile.style.display = "none";
+
+  if (musicMode.value === "url") musicUrl.style.display = "block";
+  if (musicMode.value === "upload") musicFile.style.display = "block";
 };
 
-/* ================= BASE64 ================= */
+/* ================= HELPERS ================= */
+function setStatus(t, c="#00ffcc"){
+  statusBox.innerText = t;
+  statusBox.style.color = c;
+}
+
 function toBase64(file){
-  return new Promise(r=>{
-    const reader=new FileReader();
-    reader.onload=()=>r(reader.result);
-    reader.readAsDataURL(file);
+  return new Promise(res=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.readAsDataURL(file);
   });
 }
 
-/* ================= AI ================= */
-function generateAI(student,teacher){
-  return `معلم عزیزم ${teacher}
+function generateAI(student, teacher){
+  return `معلم عزیز ${teacher}
 
-سال تحصیلی به سرعت گذشت...
+سال تحصیلی با تلاش و یادگیری گذشت...
 
-با احترام فراوان
+با احترام
 ${student}`;
 }
 
-/* ================= SMART MUSIC ================= */
 function smartMusic(){
   return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 }
 
-/* ================= LOADING + ERROR ================= */
-function setStatus(text,color="#00ffcc"){
-  statusBox.innerText=text;
-  statusBox.style.color=color;
-}
-
-/* ================= CREATE LETTER ================= */
+/* ================= CREATE ================= */
 async function createLetter(){
-
   try{
-
-    setStatus("⏳ در حال ساخت نامه...");
+    setStatus("⏳ در حال ساخت...");
 
     const student = document.getElementById("student").value;
     const teacher = document.getElementById("teacher").value;
-    const subject = document.getElementById("subject").value;
 
     let msg = document.getElementById("msg").value;
     const mode = document.getElementById("mode").value;
 
-    const file = document.getElementById("file").files[0];
-    const img = file ? await toBase64(file) : "";
+    const imgFile = document.getElementById("file").files[0];
+    const image = imgFile ? await toBase64(imgFile) : "";
 
     if(!msg || mode==="ai"){
-      msg = generateAI(student,teacher);
+      msg = generateAI(student, teacher);
     }
 
-    let music = "";
-    if(musicMode.value==="url") music = musicUrl.value;
+    let musicValue = "";
+
+    if(musicMode.value==="url"){
+      musicValue = musicUrl.value;
+    }
 
     if(musicMode.value==="upload"){
       const mf = musicFile.files[0];
-      if(mf) music = await toBase64(mf);
-      else music = "";
+      musicValue = mf ? await toBase64(mf) : "";
     }
 
     if(musicMode.value==="smart"){
-      music = smartMusic();
+      musicValue = smartMusic();
     }
 
-    const {data,error} = await supabaseClient
+    const {data, error} = await supabaseClient
       .from("letters")
-      .insert([{student,teacher,msg,image:img,music}])
+      .insert([{student, teacher, msg, image, music: musicValue}])
       .select();
 
     if(error){
@@ -220,21 +219,20 @@ async function createLetter(){
     const id = data[0].id;
     const link = location.origin + "?id=" + id;
 
-    setStatus("✅ نامه ساخته شد");
+    setStatus("✅ ساخته شد");
 
-    show(data[0],link);
+    show(data[0], link);
 
-  }catch(err){
+  }catch(e){
     setStatus("❌ خطای ناشناخته", "red");
-    console.log(err);
+    console.error(e);
   }
 }
 
 /* ================= SHOW ================= */
-function show(data,link){
-
-  form.style.display="none";
-  card.style.display="block";
+function show(data, link){
+  form.style.display = "none";
+  card.style.display = "block";
 
   title.innerText = data.teacher;
   text.innerText = data.msg;
@@ -243,11 +241,10 @@ function show(data,link){
 
   window.generatedLink = link;
 
+  qr.innerHTML = "";
   const canvas = document.createElement("canvas");
-  QRCode.toCanvas(canvas, link, err => {
-    if(err) console.error(err);
-    qr.innerHTML = "";
-    qr.appendChild(canvas);
+  QRCode.toCanvas(canvas, link, err=>{
+    if(!err) qr.appendChild(canvas);
   });
 }
 
@@ -266,27 +263,18 @@ if(id){
     const {data, error} = await supabaseClient
       .from("letters")
       .select()
-      .eq("id",id)
+      .eq("id", id)
       .single();
 
     if(error || !data){
-      setStatus("نامه یافت نشد!", "red");
+      setStatus("نامه پیدا نشد", "red");
       return;
     }
+
     show(data, location.href);
   })();
 }
 
-/* ================= DOM ================= */
-const form = document.getElementById("form");
-const card = document.getElementById("card");
-const text = document.getElementById("text");
-const title = document.getElementById("title");
-const photo = document.getElementById("photo");
-const music = document.getElementById("music");
-const qr = document.getElementById("qr");
-
 </script>
-
 </body>
 </html>
