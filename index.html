@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter PRO Media</title>
+<title>Fancy Letter PRO</title>
 
 <style>
 body{
@@ -60,7 +60,7 @@ img{
   height:120px;
   border-radius:50%;
   object-fit:cover;
-  border:4px solid #ff4fa3;
+  border:3px solid #ff4fa3;
 }
 
 audio{
@@ -72,33 +72,33 @@ audio{
 
 <body>
 
+<!-- LOGIN -->
 <div class="box" id="loginBox">
 <h2>🔐 ورود ایمیلی</h2>
 <input id="email" placeholder="ایمیل">
 <button onclick="login()">ارسال لینک ورود</button>
 </div>
 
+<!-- FORM -->
 <div class="box" id="form" style="display:none;">
-<h2>💌 ساخت نامه PRO</h2>
+<h2>💌 ساخت نامه</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
 <textarea id="msg" placeholder="متن نامه"></textarea>
 <input type="file" id="file">
-
-<!-- 🎵 آهنگ لینک -->
 <input id="musicUrl" placeholder="لینک آهنگ (mp3)">
 
 <button onclick="saveLetter()">ساخت نامه</button>
 <button onclick="logout()">خروج</button>
 </div>
 
+<!-- CARD -->
 <div class="card" id="card">
 <img id="photo">
 <h2 id="title"></h2>
 <p id="text"></p>
 
-<!-- 🎵 پلیر -->
 <audio id="music" controls loop></audio>
 
 <p id="link"></p>
@@ -107,32 +107,53 @@ audio{
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+/* 🔥 CONFIG */
 const supabase = createClient(
 "https://ycbnblhxzzcslturozrf.supabase.co",
 "sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
 );
 
-/* LOGIN */
+/* ===== LOGIN MAGIC LINK ===== */
 window.login = async function(){
   let email = document.getElementById("email").value;
 
-  await supabase.auth.signInWithOtp({ email });
+  let { error } = await supabase.auth.signInWithOtp({ email });
 
-  alert("لینک ورود ارسال شد 📧");
+  if(error){
+    alert("خطا در ارسال ایمیل ❌");
+  }else{
+    alert("لینک ورود ارسال شد 📧");
+  }
 };
 
-/* CHECK USER */
-async function checkUser(){
-  let { data } = await supabase.auth.getUser();
-
-  if(data.user){
+/* ===== UI UPDATE ===== */
+function updateUI(session){
+  if(session){
     loginBox.style.display="none";
     form.style.display="block";
+  }else{
+    loginBox.style.display="block";
+    form.style.display="none";
   }
 }
-checkUser();
 
-/* IMAGE */
+/* ===== SESSION CHECK ===== */
+supabase.auth.getSession().then(({ data })=>{
+  updateUI(data.session);
+});
+
+/* ===== LISTENER (AUTO LOGIN WITHOUT REFRESH) ===== */
+supabase.auth.onAuthStateChange((event, session)=>{
+  updateUI(session);
+});
+
+/* ===== LOGOUT ===== */
+window.logout = async function(){
+  await supabase.auth.signOut();
+  location.reload();
+};
+
+/* ===== IMAGE ===== */
 function toBase64(file){
   return new Promise(res=>{
     let r=new FileReader();
@@ -141,7 +162,7 @@ function toBase64(file){
   });
 }
 
-/* SAVE LETTER */
+/* ===== SAVE LETTER ===== */
 window.saveLetter = async function(){
 
   let id = Math.random().toString(36).substring(2,10);
@@ -168,7 +189,7 @@ window.saveLetter = async function(){
   show(data,id);
 };
 
-/* SHOW LETTER */
+/* ===== SHOW LETTER ===== */
 function show(d,id){
 
   form.style.display="none";
@@ -179,44 +200,40 @@ function show(d,id){
 
   photo.src=d.img || "";
 
-  /* 🎵 MUSIC */
-  let music = document.getElementById("music");
+  let m = document.getElementById("music");
   if(d.music){
-    music.src = d.music;
-    music.style.display="block";
+    m.src = d.music;
+    m.style.display="block";
   }else{
-    music.style.display="none";
+    m.style.display="none";
   }
 
   let url = window.location.href.split('?')[0] + "?id=" + id;
 
   link.innerHTML = `
-  🔗 لینک:
-  <br>
-  <button onclick="share('${url}')">📤 ارسال</button>
-  <button onclick="copyLink('${url}')">📋 کپی لینک</button>
+    🔗 لینک نامه:
+    <br>
+    <button onclick="share('${url}')">📤 ارسال</button>
+    <button onclick="copyLink('${url}')">📋 کپی</button>
   `;
 }
 
-/* SHARE */
+/* ===== SHARE ===== */
 window.share = async function(url){
   if(navigator.share){
-    navigator.share({
-      title:"Fancy Letter",
-      url
-    });
+    navigator.share({ title:"Fancy Letter", url });
   }else{
     copyLink(url);
   }
 };
 
-/* COPY */
+/* ===== COPY ===== */
 window.copyLink = function(url){
   navigator.clipboard.writeText(url);
   alert("لینک کپی شد 📋");
 };
 
-/* LOAD */
+/* ===== LOAD BY LINK ===== */
 window.onload = async function(){
 
   let id = new URLSearchParams(location.search).get("id");
