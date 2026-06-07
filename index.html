@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Firebase Letter Final</title>
+<title>Letter PRO MAX</title>
 
 <style>
 body{
@@ -23,6 +23,7 @@ body{
   width:90%;
   max-width:420px;
   color:white;
+  text-align:center;
 }
 
 input,textarea{
@@ -43,25 +44,23 @@ button{
   cursor:pointer;
 }
 
-.envelope{
-  width:240px;
-  height:160px;
-  background:linear-gradient(135deg,#ff4fa3,#ff0077);
-  border-radius:12px;
-  cursor:pointer;
-  box-shadow:0 0 40px rgba(255,0,150,0.4);
-  margin:auto;
-}
-
 .card{
   display:none;
   background:white;
   width:90%;
   max-width:600px;
-  padding:30px;
+  padding:25px;
   border-radius:25px;
   text-align:center;
-  box-shadow:0 0 40px rgba(0,0,0,0.4);
+}
+
+img{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  margin-bottom:10px;
+  border:4px solid #ff4fa3;
 }
 
 h2{color:#d1007a;}
@@ -69,8 +68,8 @@ p{color:#333;line-height:2;}
 
 a{
   display:inline-block;
-  margin-top:15px;
-  padding:10px 20px;
+  margin-top:10px;
+  padding:10px 18px;
   background:linear-gradient(45deg,#00d4ff,#00ff99);
   color:black;
   border-radius:20px;
@@ -83,24 +82,34 @@ a{
 <body>
 
 <div class="box" id="form">
-<h2>💌 ساخت نامه Firebase</h2>
+<h2>💌 Letter PRO MAX</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
+
+<input id="img" placeholder="لینک عکس (اختیاری)">
+
 <textarea id="msg" placeholder="متن نامه"></textarea>
 
-<button onclick="saveLetter()">ساخت و ارسال</button>
+<button onclick="saveLetter()">ساخت نامه</button>
 </div>
 
 <div class="card" id="card">
+<img id="photo">
 <h2 id="title"></h2>
 <p id="text"></p>
+
+<div id="qr"></div>
+
 <p id="link"></p>
 
 <a href="https://eitaa.com/irandigital_python" target="_blank">
 📢 کانال ایران دیجیتال | Python
 </a>
 </div>
+
+<!-- QR Code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <!-- Firebase -->
 <script type="module">
@@ -124,49 +133,55 @@ window.saveLetter = function(){
   let id = Math.random().toString(36).substring(2,10);
 
   let data = {
-    student: document.getElementById("student").value,
-    teacher: document.getElementById("teacher").value,
-    msg: document.getElementById("msg").value
+    student: student.value,
+    teacher: teacher.value,
+    msg: msg.value,
+    img: img.value
   };
 
   set(ref(db,"letters/"+id), data);
 
-  document.getElementById("form").style.display="none";
-  document.getElementById("card").style.display="block";
+  showLetter(data, id);
+};
 
-  document.getElementById("title").innerText =
-  "معلم گرامی " + data.teacher;
+function showLetter(d, id){
 
-  document.getElementById("text").innerHTML =
-  data.msg.replace(/\n/g,"<br>");
+  form.style.display="none";
+  card.style.display="block";
+
+  title.innerText = "معلم گرامی " + d.teacher;
+  text.innerHTML = d.msg.replace(/\n/g,"<br>");
+
+  if(d.img){
+    photo.src = d.img;
+  } else {
+    photo.src = "https://master-ai.ir/wp-content/uploads/2025/08/default-student.png";
+  }
 
   let link = window.location.href.split('?')[0] + "?id=" + id;
 
-  document.getElementById("link").innerHTML =
-  "🔗 لینک دائمی نامه:<br>" + link;
-};
+  linkBox = document.getElementById("link");
+  linkBox.innerText = "🔗 لینک نامه: " + link;
 
-// خواندن نامه با لینک
+  new QRCode(document.getElementById("qr"), {
+    text: link,
+    width:120,
+    height:120
+  });
+}
+
+// خواندن از لینک
 const url = new URLSearchParams(window.location.search);
 const id = url.get("id");
 
 if(id){
   get(child(ref(db),"letters/"+id)).then((snap)=>{
     if(snap.exists()){
-      let d = snap.val();
-
-      document.getElementById("form").style.display="none";
-      document.getElementById("card").style.display="block";
-
-      document.getElementById("title").innerText =
-      "معلم گرامی " + d.teacher;
-
-      document.getElementById("text").innerHTML =
-      d.msg.replace(/\n/g,"<br>");
+      showLetter(snap.val(), id);
     }
   });
 }
 </script>
 
 </body>
-</html>﻿
+</html>
