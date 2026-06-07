@@ -3,78 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro Ultra</title>
+<title>Fancy Letter GOD REAL 💎</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
-:root{
-  --bg1:#0f2027;
-  --bg2:#203a43;
-  --bg3:#2c5364;
-  --accent:#00d4ff;
-  --pink:#ff4fa3;
-}
-
 body{
   margin:0;
   font-family:tahoma;
-  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-/* ===== BOX ===== */
-.box{
+.box,.card{
   width:92%;
-  max-width:450px;
-  background:rgba(0,0,0,0.85);
-  color:white;
-  padding:22px;
-  border-radius:22px;
+  max-width:520px;
+  padding:20px;
+  border-radius:18px;
   text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,0.5);
-  animation:fadeIn 0.8s ease;
+  background:rgba(0,0,0,0.88);
+  color:white;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
 input,textarea,select,button{
   width:100%;
-  padding:11px;
-  margin:7px 0;
+  padding:10px;
+  margin:6px 0;
+  border-radius:10px;
   border:none;
-  border-radius:12px;
   outline:none;
 }
 
-/* ===== BUTTON ===== */
 button{
-  background:linear-gradient(45deg,var(--accent),#00ffcc);
+  background:linear-gradient(45deg,#00d4ff,#00ffcc);
   font-weight:bold;
   cursor:pointer;
   transition:0.3s;
 }
 
 button:hover{
-  transform:scale(1.05);
-  box-shadow:0 8px 20px rgba(0,212,255,0.4);
+  transform:scale(1.04);
 }
 
-/* ===== CARD ===== */
 .card{
   display:none;
-  width:92%;
-  max-width:520px;
   background:white;
   color:black;
-  padding:25px;
-  border-radius:22px;
-  text-align:center;
-  transform:translateY(40px) scale(0.9);
+  transform:translateY(30px) scale(0.95);
   opacity:0;
-  transition:all 0.7s ease;
+  transition:0.6s;
 }
 
 .card.show{
@@ -82,93 +64,44 @@ button:hover{
   opacity:1;
 }
 
-/* ===== IMAGE ===== */
 img{
   width:120px;
   height:120px;
   border-radius:50%;
   object-fit:cover;
-  border:3px solid var(--pink);
-  transition:0.4s;
 }
-
-img:hover{
-  transform:scale(1.1) rotate(-3deg);
-}
-
-/* ===== TEXT TYPE ===== */
 #text{
-  margin-top:15px;
-  font-size:15px;
-  line-height:2;
   white-space:pre-wrap;
-}
-
-/* ===== QR ===== */
-#qr{
-  margin-top:15px;
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px);}
-  to{opacity:1;transform:translateY(0);}
+  line-height:1.9;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= FORM ================= -->
 <div class="box" id="form">
-<h2>💌 Fancy Letter AI Ultra</h2>
+<h2>💎 GOD REAL VERSION</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
-<input id="subject" placeholder="درس">
-<textarea id="msg" placeholder="متن نامه (اختیاری)"></textarea>
-
-<select id="mode">
-  <option value="manual">✍️ دستی</option>
-  <option value="ai">🤖 هوش مصنوعی</option>
-</select>
-
-<input type="file" id="file" accept="image/*">
-
-<h3>🎵 موسیقی</h3>
-<select id="musicMode">
-  <option value="url">لینک</option>
-  <option value="upload">آپلود</option>
-  <option value="smart">هوشمند</option>
-</select>
-
-<input id="musicUrl" placeholder="لینک موسیقی">
-<input type="file" id="musicFile" accept="audio/*" style="display:none">
+<input id="subject" placeholder="درس (اختیاری)">
+<textarea id="msg" placeholder="متن (خالی = AI)"></textarea>
 
 <button onclick="createLetter()">🚀 ساخت نامه</button>
 
 <div id="status"></div>
 </div>
 
-<!-- ================= CARD ================= -->
 <div class="card" id="card">
-
 <img id="photo">
 <h2 id="title"></h2>
 <p id="text"></p>
 
-<audio id="music" controls loop></audio>
-
 <div id="qr"></div>
-
-<br>
 
 <button onclick="copyLink()">📋 کپی لینک</button>
 <button onclick="downloadHTML()">⬇ دانلود HTML</button>
-
-<br><br>
-<a href="https://eitaa.com/irandigital_python" target="_blank">📢 کانال ایتا</a>
-
 </div>
 
 <script>
@@ -176,167 +109,111 @@ img:hover{
 /* ================= SUPABASE ================= */
 const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
 const SUPABASE_KEY = "YOUR_KEY";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ================= STATUS ================= */
-const statusBox = document.getElementById("status");
-function setStatus(t){
-  statusBox.innerText=t;
-}
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ================= UI ================= */
-const musicMode = document.getElementById("musicMode");
-const musicUrl = document.getElementById("musicUrl");
-const musicFile = document.getElementById("musicFile");
-
-musicMode.onchange = ()=>{
-  musicUrl.style.display="none";
-  musicFile.style.display="none";
-  if(musicMode.value==="url") musicUrl.style.display="block";
-  if(musicMode.value==="upload") musicFile.style.display="block";
-};
-
-/* ================= BASE64 ================= */
-function toBase64(file){
-  return new Promise(r=>{
-    const reader=new FileReader();
-    reader.onload=()=>r(reader.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-/* ================= AI TEXT ================= */
-function generateAI(student,teacher){
+/* ================= AI LETTER ================= */
+function ai(student, teacher){
 return `معلم عزیزم ${teacher}
 
-سال تحصیلی با سرعت گذشت...
-از زحمات شما بسیار سپاسگزارم.
+سال تحصیلی به سرعت گذشت و من از ته قلبم از زحمات شما بی‌نهایت سپاسگزارم.
 
-با عشق فراوان
+شما فقط درس ندادید، بلکه الهام زندگی بودید.
+
+هر لحظه کلاس شما برای من یک خاطره است.
+
+با احترام و عشق
 ${student}`;
 }
 
-/* ================= SMART MUSIC ================= */
-function smartMusic(){
-  return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-}
-
-/* ================= CREATE ================= */
+/* ================= CREATE LETTER ================= */
 window.createLetter = async function(){
 
   try{
 
-    setStatus("⏳ در حال ساخت...");
-
     const student = document.getElementById("student").value;
     const teacher = document.getElementById("teacher").value;
     const subject = document.getElementById("subject").value;
-
     let msg = document.getElementById("msg").value;
-    const mode = document.getElementById("mode").value;
 
-    const file = document.getElementById("file").files[0];
-    const img = file ? await toBase64(file) : "";
-
-    if(!msg || mode==="ai"){
-      msg = generateAI(student,teacher);
+    if(!msg){
+      msg = ai(student, teacher);
     }
 
-    let music="";
-    if(musicMode.value==="url") music=musicUrl.value;
-    if(musicMode.value==="upload"){
-      const mf=musicFile.files[0];
-      if(mf) music=await toBase64(mf);
-    }
-    if(musicMode.value==="smart") music=smartMusic();
-
-    const {data,error} = await supabase.from("letters").insert([{
-      student,teacher,msg,image:img,music
+    const {data, error} = await client.from("letters").insert([{
+      student,
+      teacher,
+      subject,
+      msg
     }]).select();
 
     if(error){
-      setStatus("❌ خطا: "+error.message);
+      document.getElementById("status").innerText = "❌ " + error.message;
       return;
     }
 
-    const id = data[0].id;
-    const link = location.origin + "?id=" + id;
-
-    setStatus("✅ ساخته شد");
-
-    show(data[0],link);
+    show(data[0]);
 
   }catch(e){
-    setStatus("❌ مشکل شبکه");
-    console.log(e);
+    document.getElementById("status").innerText = "❌ Network Error";
   }
 };
 
 /* ================= SHOW ================= */
-function show(data,link){
+function show(d){
 
-  form.style.display="none";
+  document.getElementById("form").style.display="none";
+  const card=document.getElementById("card");
   card.style.display="block";
 
   setTimeout(()=>card.classList.add("show"),100);
 
-  title.innerText=data.teacher;
-  text.innerText=data.msg;
-  photo.src=data.image;
-  music.src=data.music;
+  document.getElementById("title").innerText = d.teacher;
+  document.getElementById("text").innerText = d.msg;
 
-  window.generatedLink=link;
+  window.link = location.origin + "?id=" + d.id;
 
-  QRCode.toCanvas(document.createElement("canvas"),link,(e,c)=>{
-    qr.innerHTML="";
-    qr.appendChild(c);
+  QRCode.toCanvas(document.createElement("canvas"), window.link, (e,c)=>{
+    document.getElementById("qr").innerHTML="";
+    document.getElementById("qr").appendChild(c);
   });
 }
 
 /* ================= COPY ================= */
 function copyLink(){
-  navigator.clipboard.writeText(window.generatedLink);
+  navigator.clipboard.writeText(window.link);
   alert("کپی شد");
 }
 
 /* ================= DOWNLOAD HTML ================= */
 function downloadHTML(){
 
-  const student = document.getElementById("student").value;
   const html = `
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>${student}</title></head>
+<html>
+<head><meta charset="UTF-8"></head>
 <body style="font-family:tahoma;text-align:center">
-<h2>${student}</h2>
-<p>${document.getElementById("text").innerText}</p>
-</body></html>`;
+<h2>${document.getElementById("title").innerText}</h2>
+<pre>${document.getElementById("text").innerText}</pre>
+</body>
+</html>`;
 
-  const blob = new Blob([html],{type:"text/html"});
+  const blob = new Blob([html], {type:"text/html"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = student + "-letter.html";
+  a.download = "letter.html";
   a.click();
 }
 
-/* ================= LOAD ================= */
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
+/* ================= LOAD BY ID ================= */
+const id = new URLSearchParams(location.search).get("id");
 
 if(id){
   (async()=>{
-    const {data} = await supabase.from("letters").select().eq("id",id).single();
-    if(data) show(data,location.href);
+    const {data} = await client.from("letters").select().eq("id",id).single();
+    if(data) show(data);
   })();
 }
-
-/* ================= DOM ================= */
-const form=document.getElementById("form");
-const card=document.getElementById("card");
-const text=document.getElementById("text");
-const title=document.getElementById("title");
-const photo=document.getElementById("photo");
-const music=document.getElementById("music");
-const qr=document.getElementById("qr");
 
 </script>
 
