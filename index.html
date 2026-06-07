@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter AI Pro - Premium</title>
+<title>Fancy Letter AI Pro</title>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
@@ -79,19 +79,21 @@ img{
   margin-top:10px;
 }
 
-.template{
-  display:flex;
-  gap:5px;
-}
-
-.template button{
-  flex:1;
-  font-size:12px;
-}
-
 #status{
   font-size:13px;
   color:#00ffcc;
+}
+
+/* لینک کانال */
+.channel{
+  display:block;
+  margin-top:15px;
+  padding:10px;
+  background:linear-gradient(45deg,#ffcc00,#ff9900);
+  color:black;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -117,14 +119,6 @@ img{
 
   <input type="file" id="file" accept="image/*">
 
-  <h4>🎨 قالب نامه</h4>
-  <div class="template">
-    <button onclick="setTemplate(1)">کلاسیک</button>
-    <button onclick="setTemplate(2)">رمانتیک</button>
-    <button onclick="setTemplate(3)">مدرن</button>
-  </div>
-
-  <h4>🎵 موسیقی</h4>
   <input id="musicUrl" placeholder="لینک موسیقی (اختیاری)">
 
   <button onclick="createLetter()">🚀 ساخت نامه</button>
@@ -132,6 +126,7 @@ img{
 
 <!-- CARD -->
 <div class="card" id="card">
+
   <img id="photo">
   <h2 id="title"></h2>
   <p id="text"></p>
@@ -141,14 +136,22 @@ img{
   <div id="qr"></div>
 
   <br>
+
   <button onclick="downloadLetter()">📥 دانلود</button>
   <button onclick="share()">🔗 اشتراک‌گذاری</button>
   <button onclick="location.reload()">🔄 جدید</button>
+
+  <!-- 🔥 لینک کانال ایتا -->
+  <a class="channel" href="https://eitaa.com/irandigital_python" target="_blank">
+    📢 کانال ایتا ما
+  </a>
+
 </div>
 
 </div>
 
 <script>
+
 const form = document.getElementById("form");
 const card = document.getElementById("card");
 const textEl = document.getElementById("text");
@@ -158,11 +161,9 @@ const musicEl = document.getElementById("music");
 const qr = document.getElementById("qr");
 const statusBox = document.getElementById("status");
 
-let templateType = 1;
 let saved = null;
 
 function setStatus(t,c="#00ffcc"){statusBox.innerText=t;statusBox.style.color=c;}
-function setTemplate(t){templateType=t;}
 
 function toBase64(file){
   return new Promise(r=>{
@@ -172,7 +173,7 @@ function toBase64(file){
   });
 }
 
-// ===== متن هوش مصنوعی جدید =====
+// 💌 AI TEXT
 function generateAI(student, teacher){
   return `معلم عزیز ${teacher}
 
@@ -190,38 +191,38 @@ function generateAI(student, teacher){
 ${student}`;
 }
 
-// ===== ساخت نامه =====
 async function createLetter(){
   try{
     setStatus("⏳ در حال ساخت...");
 
-    const student = document.getElementById("student").value;
-    const teacher = document.getElementById("teacher").value;
-    let msg = document.getElementById("msg").value;
-    const mode = document.getElementById("mode").value;
-    const imgFile = document.getElementById("file").files[0];
+    const student=document.getElementById("student").value;
+    const teacher=document.getElementById("teacher").value;
+    let msg=document.getElementById("msg").value;
+    const mode=document.getElementById("mode").value;
+    const img=document.getElementById("file").files[0];
+    const music=document.getElementById("musicUrl").value;
 
-    const image = imgFile ? await toBase64(imgFile) : "";
+    const image = img ? await toBase64(img) : "";
 
-    if(mode === "ai" || !msg) msg = generateAI(student, teacher);
+    if(mode==="ai" || !msg){
+      msg = generateAI(student, teacher);
+    }
 
-    const music = document.getElementById("musicUrl").value;
-
-    saved = {student, teacher, msg, image, music};
+    saved = {student,teacher,msg,image,music};
 
     form.style.display="none";
     card.style.display="block";
 
-    titleEl.innerText = teacher;
-    textEl.innerText = msg;
-    photoEl.src = image || "https://via.placeholder.com/120";
-    musicEl.src = music || "";
+    titleEl.innerText=teacher;
+    textEl.innerText=msg;
+    photoEl.src=image || "https://via.placeholder.com/120";
+    musicEl.src=music || "";
 
     const link = URL.createObjectURL(new Blob([JSON.stringify(saved)], {type:"application/json"}));
 
     qr.innerHTML="";
-    const canvas = document.createElement("canvas");
-    QRCode.toCanvas(canvas, link);
+    const canvas=document.createElement("canvas");
+    QRCode.toCanvas(canvas,link);
     qr.appendChild(canvas);
 
     setStatus("✅ آماده شد");
@@ -232,18 +233,18 @@ async function createLetter(){
   }
 }
 
-// ===== دانلود و اشتراک گذاری =====
 function downloadLetter(){
-  const a = document.createElement("a");
-  a.href = "data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(saved,null,2));
-  a.download = "letter.json";
+  const a=document.createElement("a");
+  a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(saved,null,2));
+  a.download="letter.json";
   a.click();
 }
 
 function share(){
   navigator.clipboard.writeText(JSON.stringify(saved));
-  alert("💾 لینک یا محتوا کپی شد!");
+  alert("📋 کپی شد!");
 }
+
 </script>
 
 </body>
