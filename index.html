@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fancy Letter FINAL FIX</title>
+<title>Fancy Letter NO LOGIN</title>
 
 <style>
 body{
@@ -72,15 +72,8 @@ audio{
 
 <body>
 
-<!-- LOGIN -->
-<div class="box" id="loginBox">
-<h2>🔐 ورود ایمیلی</h2>
-<input id="email" placeholder="ایمیل خود را وارد کنید">
-<button onclick="login()">ارسال لینک ورود</button>
-</div>
-
 <!-- FORM -->
-<div class="box" id="form" style="display:none;">
+<div class="box" id="form">
 <h2>💌 ساخت نامه</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
@@ -90,7 +83,6 @@ audio{
 <input id="musicUrl" placeholder="لینک آهنگ (mp3)">
 
 <button onclick="saveLetter()">ساخت نامه</button>
-<button onclick="logout()">خروج</button>
 </div>
 
 <!-- CARD -->
@@ -104,67 +96,8 @@ audio{
 <p id="link"></p>
 </div>
 
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-/* 🔥 SUPABASE CONFIG */
-const supabase = createClient(
-"https://ycbnblhxzzcslturozrf.supabase.co",
-"sb_publishable_7aHzH58mQSbSKkdhu0emqQ_YaTegw3q"
-);
-
-/* ================= LOGIN ================= */
-window.login = async function(){
-  let email = document.getElementById("email").value;
-
-  if(!email){
-    alert("ایمیل را وارد کن ❌");
-    return;
-  }
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email.trim()
-  });
-
-  if(error){
-    console.log(error);
-    alert("خطا: " + error.message);
-  }else{
-    alert("لینک ورود ارسال شد 📧");
-  }
-};
-
-/* ================= UI CONTROL ================= */
-function updateUI(session){
-  if(session){
-    loginBox.style.display="none";
-    form.style.display="block";
-  }else{
-    loginBox.style.display="block";
-    form.style.display="none";
-  }
-}
-
-/* ================= SESSION INIT ================= */
-window.addEventListener("load", async () => {
-
-  const { data } = await supabase.auth.getSession();
-
-  updateUI(data.session);
-});
-
-/* ================= LISTENER (AUTO LOGIN FIX) ================= */
-supabase.auth.onAuthStateChange((event, session) => {
-  updateUI(session);
-});
-
-/* ================= LOGOUT ================= */
-window.logout = async function(){
-  await supabase.auth.signOut();
-  location.reload();
-};
-
-/* ================= IMAGE ================= */
+<script>
+/* ===== IMAGE TO BASE64 ===== */
 function toBase64(file){
   return new Promise(res=>{
     let r=new FileReader();
@@ -173,7 +106,7 @@ function toBase64(file){
   });
 }
 
-/* ================= SAVE LETTER ================= */
+/* ===== SAVE LETTER (LOCAL ONLY) ===== */
 window.saveLetter = async function(){
 
   let id = Math.random().toString(36).substring(2,10);
@@ -181,26 +114,22 @@ window.saveLetter = async function(){
   let file = document.getElementById("file").files[0];
   let img = file ? await toBase64(file) : "";
 
-  let music = document.getElementById("musicUrl").value;
-
-  let { data: user } = await supabase.auth.getUser();
-
   let data = {
     id,
-    user_id: user.user.id,
     student: student.value,
     teacher: teacher.value,
     msg: msg.value,
     img,
-    music
+    music: musicUrl.value
   };
 
-  await supabase.from("letters").insert([data]);
+  // ذخیره در localStorage (بدون Supabase)
+  localStorage.setItem("letter_" + id, JSON.stringify(data));
 
   show(data,id);
 };
 
-/* ================= SHOW LETTER ================= */
+/* ===== SHOW LETTER ===== */
 function show(d,id){
 
   form.style.display="none";
@@ -211,12 +140,8 @@ function show(d,id){
 
   photo.src=d.img || "";
 
-  let m = document.getElementById("music");
   if(d.music){
-    m.src = d.music;
-    m.style.display="block";
-  }else{
-    m.style.display="none";
+    music.src = d.music;
   }
 
   let url = window.location.href.split('?')[0] + "?id=" + id;
@@ -224,39 +149,27 @@ function show(d,id){
   link.innerHTML = `
     🔗 لینک نامه:
     <br>
-    <button onclick="share('${url}')">📤 ارسال</button>
-    <button onclick="copyLink('${url}')">📋 کپی</button>
+    <button onclick="copyLink('${url}')">📋 کپی لینک</button>
   `;
 }
 
-/* ================= SHARE ================= */
-window.share = async function(url){
-  if(navigator.share){
-    navigator.share({ title:"Fancy Letter", url });
-  }else{
-    copyLink(url);
-  }
-};
-
-/* ================= COPY ================= */
-window.copyLink = function(url){
+/* ===== COPY ===== */
+function copyLink(url){
   navigator.clipboard.writeText(url);
   alert("لینک کپی شد 📋");
-};
+}
 
-/* ================= LOAD BY LINK ================= */
-window.onload = async function(){
+/* ===== LOAD LETTER ===== */
+window.onload = function(){
 
   let id = new URLSearchParams(location.search).get("id");
 
   if(id){
-    let { data } = await supabase
-      .from("letters")
-      .select("*")
-      .eq("id", id)
-      .single();
+    let data = localStorage.getItem("letter_" + id);
 
-    if(data) show(data,id);
+    if(data){
+      show(JSON.parse(data), id);
+    }
   }
 };
 </script>
