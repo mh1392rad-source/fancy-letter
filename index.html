@@ -313,4 +313,9 @@ function show(d){
 
 /* ===== SHARE ===== */
 window.copy=u=>{navigator.clipboard.writeText(u);alert("کپی شد");}
-window.share=u=>navigator.share?navigator.share({url:u
+window.share=u=>navigator.share?navigator.share({url:u}):copy(u);
+
+</script>
+
+</body>
+</html>
