@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -16,7 +17,6 @@
   --accent:#ff4fa3;
 }
 
-/* ===== BASE ===== */
 body{
   margin:0;
   font-family:tahoma;
@@ -27,7 +27,6 @@ body{
   align-items:center;
 }
 
-/* ===== FORM ===== */
 .box{
   background:rgba(0,0,0,0.85);
   padding:22px;
@@ -40,7 +39,7 @@ body{
   animation:fadeIn 0.6s ease;
 }
 
-input,textarea,select{
+input,textarea,select,button{
   width:100%;
   padding:11px;
   margin:7px 0;
@@ -50,9 +49,7 @@ input,textarea,select{
 }
 
 button{
-  width:100%;
   padding:13px;
-  margin-top:8px;
   border:none;
   border-radius:15px;
   background:linear-gradient(45deg,var(--primary),#00ffcc);
@@ -66,7 +63,6 @@ button:hover{
   box-shadow:0 5px 15px rgba(0,212,255,0.4);
 }
 
-/* ===== CARD ===== */
 .card{
   display:none;
   background:var(--card);
@@ -86,7 +82,6 @@ button:hover{
   opacity:1;
 }
 
-/* IMAGE */
 img{
   width:120px;
   height:120px;
@@ -100,7 +95,6 @@ img:hover{
   transform:scale(1.1) rotate(-4deg);
 }
 
-/* TEXT */
 #text{
   margin-top:15px;
   font-size:15px;
@@ -108,22 +102,10 @@ img:hover{
   white-space:pre-wrap;
 }
 
-/* TYPE EFFECT */
-#text.typing{
-  border-right:2px solid #000;
-  animation:blink 0.8s infinite;
-}
-
-@keyframes blink{
-  50%{border-color:transparent;}
-}
-
-/* QR */
 #qr{
   margin-top:15px;
 }
 
-/* EITAA */
 .eitaa{
   display:block;
   margin-top:16px;
@@ -135,7 +117,6 @@ img:hover{
   font-weight:bold;
 }
 
-/* ANIMATION */
 @keyframes fadeIn{
   from{opacity:0;transform:translateY(10px);}
   to{opacity:1;transform:translateY(0);}
@@ -145,7 +126,6 @@ img:hover{
 
 <body>
 
-<!-- FORM -->
 <div class="box" id="form">
 <h2>💌 Fancy Letter AI Pro</h2>
 
@@ -175,7 +155,6 @@ img:hover{
 <button onclick="createLetter()">ساخت نامه 🚀</button>
 </div>
 
-<!-- CARD -->
 <div class="card" id="card">
 <img id="photo">
 <h2 id="title"></h2>
@@ -194,7 +173,6 @@ img:hover{
 
 <script>
 
-/* ===== UI CONTROL ===== */
 const musicMode = document.getElementById("musicMode");
 const musicUrl = document.getElementById("musicUrl");
 const musicFile = document.getElementById("musicFile");
@@ -207,7 +185,6 @@ musicMode.onchange = () => {
   if(musicMode.value==="upload") musicFile.style.display="block";
 };
 
-/* ===== UTIL ===== */
 function toBase64(file){
   return new Promise(r=>{
     const f=new FileReader();
@@ -216,7 +193,6 @@ function toBase64(file){
   });
 }
 
-/* ===== AI TEXT ===== */
 async function generateText(student,teacher,subject){
   return `معلم عزیزم ${teacher}
 
@@ -235,7 +211,6 @@ async function generateText(student,teacher,subject){
 ${student}`;
 }
 
-/* ===== MUSIC SMART ===== */
 function smartMusic(subject){
   const s=subject.toLowerCase();
   if(s.includes("ریاضی")) return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
@@ -243,7 +218,6 @@ function smartMusic(subject){
   return "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3";
 }
 
-/* ===== TYPE EFFECT ===== */
 function typeText(el,text){
   el.innerText="";
   let i=0;
@@ -254,9 +228,17 @@ function typeText(el,text){
   },25);
 }
 
-/* ===== CREATE ===== */
-window.createLetter = async function(){
+/* ===== READ URL PARAMS ===== */
+const params = new URLSearchParams(window.location.search);
+const urlTeacher = params.get("teacher");
+const urlStudent = params.get("student");
 
+if(urlTeacher && urlStudent){
+  showLetter(urlStudent,urlTeacher);
+}
+
+/* ===== CREATE LETTER ===== */
+async function createLetter(){
   const file=document.getElementById("file").files[0];
   const img=file?await toBase64(file):"";
 
@@ -264,55 +246,50 @@ window.createLetter = async function(){
   let textData=mode==="ai"?await generateText(student.value,teacher.value,subject.value):msg.value;
 
   let musicSrc="";
-
-  if(musicMode.value==="url"){
-    musicSrc=musicUrl.value;
-  }
-
+  if(musicMode.value==="url") musicSrc=musicUrl.value;
   if(musicMode.value==="upload"){
     const f=musicFile.files[0];
     if(f) musicSrc=URL.createObjectURL(f);
   }
+  if(musicMode.value==="smart") musicSrc=smartMusic(subject.value);
 
-  if(musicMode.value==="smart"){
-    musicSrc=smartMusic(subject.value);
-  }
+  const baseUrl=location.href.split("?")[0];
+  const link=`${baseUrl}?teacher=${encodeURIComponent(teacher.value)}&student=${encodeURIComponent(student.value)}`;
 
-  show({img,textData,musicSrc});
-};
+  showLetter(student.value,teacher.value,textData,musicSrc,link);
+}
 
-/* ===== SHOW ===== */
-function show(d){
-
+/* ===== SHOW LETTER ===== */
+function showLetter(studentName,teacherName,textData="",musicSrc="",link=""){
   form.style.display="none";
   card.style.display="block";
-
   setTimeout(()=>card.classList.add("show"),100);
 
-  title.innerText = teacher.value;
+  title.innerText = teacherName;
 
-  photo.src=d.img;
+  photo.src="";
 
-  typeText(document.getElementById("text"),d.textData);
+  typeText(document.getElementById("text"), textData || generateText(studentName,teacherName));
 
-  music.src=d.musicSrc;
+  music.src = musicSrc;
 
-  const url=location.href.split("?")[0];
+  if(!link) link=location.href;
+  window.generatedLink = link;
 
   document.getElementById("actions").innerHTML=`
     <br>
-    <button onclick="copy('${url}')">📋 کپی لینک</button>
-    <button onclick="share('${url}')">📤 اشتراک</button>
+    <button onclick="copy('${link}')">📋 کپی لینک</button>
+    <button onclick="share('${link}')">📤 اشتراک</button>
   `;
 
-  QRCode.toCanvas(document.createElement("canvas"),url,(e,c)=>{
+  QRCode.toCanvas(document.createElement("canvas"),link,(e,c)=>{
     qr.innerHTML="";
     qr.appendChild(c);
   });
 }
 
 /* ===== SHARE ===== */
-window.copy=u=>{navigator.clipboard.writeText(u);alert("کپی شد");}
+window.copy=u=>{navigator.clipboard.writeText(u);alert("لینک کپی شد");}
 window.share=u=>navigator.share?navigator.share({url:u}):copy(u);
 
 </script>
