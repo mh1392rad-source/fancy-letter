@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultra Letter Pro</title>
+<title>Ultra Letter Final</title>
 
 <style>
 body{
@@ -25,7 +25,6 @@ body{
   width:90%;
   max-width:420px;
   color:white;
-  box-shadow:0 0 30px rgba(0,255,255,0.3);
 }
 
 input,textarea{
@@ -46,7 +45,7 @@ button{
   cursor:pointer;
 }
 
-/* پاکت واقعی‌تر */
+/* پاکت */
 .envelope{
   width:260px;
   height:170px;
@@ -73,7 +72,7 @@ button{
   50%{transform:translateY(-12px);}
 }
 
-/* نامه */
+/* کارت نامه */
 .card{
   display:none;
   background:white;
@@ -104,26 +103,14 @@ a{
   text-decoration:none;
   font-weight:bold;
 }
-
-/* قلب‌ها */
-.heart{
-  position:absolute;
-  color:#ff4fa3;
-  font-size:18px;
-  animation:fall 3s linear infinite;
-}
-
-@keyframes fall{
-  from{transform:translateY(0);opacity:1;}
-  to{transform:translateY(-300px);opacity:0;}
-}
 </style>
 </head>
 
 <body>
 
+<!-- فرم -->
 <div class="box" id="form">
-<h2>💌 Ultra Letter Pro</h2>
+<h2>💌 ساخت نامه</h2>
 
 <input id="student" placeholder="نام دانش‌آموز">
 <input id="teacher" placeholder="نام معلم">
@@ -132,32 +119,39 @@ a{
 <button onclick="start()">ساخت نامه</button>
 </div>
 
+<!-- پاکت -->
 <div id="env" style="display:none">
 <div class="envelope" onclick="openLetter()"></div>
 </div>
 
+<!-- کارت -->
 <div class="card" id="card">
 <h2 id="title"></h2>
 <p id="text"></p>
+<p id="link"></p>
 
 <a href="https://eitaa.com/irandigital_python" target="_blank">
 📢 کانال ایران دیجیتال | Python
 </a>
 </div>
 
+<!-- صدا -->
 <audio id="sound">
-<source src="https://assets.mixkit.co/sfx/preview/mixkit-paper-slide-1536.mp3" type="audio/mpeg">
+<source src="https://assets.mixkit.co/sfx/preview/mixkit-paper-slide-1536.mp3">
 </audio>
 
 <script>
+let currentID = null;
+
 function start(){
+  currentID = Math.random().toString(36).substring(2,10);
+
   document.getElementById("form").style.display="none";
   document.getElementById("env").style.display="block";
-
-  spawnHearts();
 }
 
 function openLetter(){
+
   document.getElementById("sound").play();
 
   document.getElementById("env").style.display="none";
@@ -168,19 +162,12 @@ function openLetter(){
 
   document.getElementById("text").innerHTML =
   document.getElementById("msg").value.replace(/\n/g,"<br>");
-}
 
-/* قلب‌ها */
-function spawnHearts(){
-  for(let i=0;i<20;i++){
-    let h=document.createElement("div");
-    h.className="heart";
-    h.innerHTML="❤";
-    h.style.left=Math.random()*100+"%";
-    h.style.top=Math.random()*100+"%";
-    h.style.animationDuration=(2+Math.random()*3)+"s";
-    document.body.appendChild(h);
-  }
+  // 🔗 لینک قابل ارسال
+  let link = window.location.href.split('?')[0] + "?id=" + currentID;
+
+  document.getElementById("link").innerHTML =
+  "🔗 لینک نامه برای معلم:<br>" + link;
 }
 </script>
 
